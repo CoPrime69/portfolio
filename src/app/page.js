@@ -170,15 +170,16 @@ export default function Home() {
       {/* Render other sections ONLY after hero is done */}
       {allowScroll && (
         <>
+          {/* Experience Section */}
+          <div ref={experienceRef} data-section="experience">
+            <ExperienceSection />
+          </div>
+
           {/* Projects Section */}
           <div ref={projectsRef} data-section="projects">
             <ProjectsSection isActive={currentSection === "projects"} />
           </div>
 
-          {/* Experience Section */}
-          <div ref={experienceRef} data-section="experience">
-            <ExperienceSection />
-          </div>
 
           {/* Contact Section */}
           <div ref={contactRef} data-section="contact">
