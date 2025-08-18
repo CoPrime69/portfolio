@@ -1,0 +1,182 @@
+/* Cyberpunk Theme Styles - Import this in components as needed */
+
+/* Custom scrollbar for cyberpunk theme */
+.cyberpunkContainer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.cyberpunkContainer::-webkit-scrollbar-track {
+  background: #060010;
+  border-radius: 4px;
+}
+
+.cyberpunkContainer::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00f5ff, #a855f7);
+  border-radius: 4px;
+}
+
+.cyberpunkContainer::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00f5ff, #ff006e);
+}
+
+/* Glow effects */
+.cyberpunkGlow {
+  box-shadow: 
+    0 0 20px rgba(0, 245, 255, 0.5),
+    0 0 40px rgba(0, 245, 255, 0.3),
+    0 0 60px rgba(0, 245, 255, 0.1);
+}
+
+.cyberpunkGlowHover {
+  transition: all 0.3s ease;
+}
+
+.cyberpunkGlowHover:hover {
+  box-shadow: 
+    0 0 30px rgba(0, 245, 255, 0.6),
+    0 0 50px rgba(0, 245, 255, 0.4),
+    0 0 70px rgba(0, 245, 255, 0.2);
+}
+
+/* Text gradients */
+.gradientTextCyan {
+  background: linear-gradient(135deg, #00f5ff, #ff006e);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradientTextPurple {
+  background: linear-gradient(135deg, #a855f7, #00ff88);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button styles */
+.cyberpunkButton {
+  background: linear-gradient(135deg, #00f5ff, #ff006e);
+  border: none;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.cyberpunkButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.cyberpunkButton:hover::before {
+  left: 100%;
+}
+
+.cyberpunkButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 245, 255, 0.4);
+}
+
+/* Border animations */
+.cyberpunkBorder {
+  position: relative;
+  border: 2px solid transparent;
+  background: linear-gradient(#060010, #060010) padding-box,
+              linear-gradient(135deg, #00f5ff, #ff006e) border-box;
+  border-radius: 12px;
+}
+
+/* Animated background */
+@keyframes cyberpunkPulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.cyberpunkPulse {
+  animation: cyberpunkPulse 2s ease-in-out infinite;
+}
+
+/* Section transitions */
+.sectionFadeIn {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Project card hover effects */
+.projectCard {
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 245, 255, 0.2);
+}
+
+.projectCard:hover {
+  transform: translateY(-5px);
+  border-color: #00f5ff;
+  box-shadow: 
+    0 10px 30px rgba(0, 245, 255, 0.3),
+    inset 0 1px 0 rgba(0, 245, 255, 0.2);
+}
+
+/* Floating animation */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.floatingElement {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Responsive section spacing */
+.sectionContainer {
+  min-height: 100vh;
+  position: relative;
+  padding: 5rem 1rem;
+}
+
+@media (max-width: 768px) {
+  .sectionContainer {
+    padding: 3rem 1rem;
+  }
+}
+
+/* Smooth scroll behavior */
+.smoothScroll {
+  scroll-behavior: smooth;
+}
+
+/* Ensure cursor changes only in projects */
+.projectsOnly {
+  cursor: none;
+}
+
+.defaultCursor {
+  cursor: auto;
+}

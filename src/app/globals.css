@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Try to load Minecraft font, but don't fail if it doesn't work */
+canvas {
+  position: relative;
+  z-index: 10;
+}
+
+/* Minecraft nametag styling using the proper font */
+.minecraft-nametag {
+  font-family: "Minecraft", 'Courier New', monospace;
+  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+  color: #ffffff; /* Default white color */
+}
+
+/* Ensure proper rendering context */
+.minecraft-avatar-container {
+  position: relative;
+  isolation: isolate;
+}
