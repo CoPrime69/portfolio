@@ -23,9 +23,9 @@ const NavigationDock = ({ scrollToSection, refs }) => {
             onClick: () => scrollToSection(refs.home, "home")
         },
         {
-            icon: <VscCode size={isMobile ? 16 : 18} />,
-            label: "Projects",
-            onClick: () => scrollToSection(refs.projects, "projects")
+            icon: <VscPerson size={isMobile ? 16 : 18} />,
+            label: "Experience",
+            onClick: () => scrollToSection(refs.experience, "experience")
         },
         {
             icon: <VscFile size={isMobile ? 16 : 18} />,
@@ -33,15 +33,15 @@ const NavigationDock = ({ scrollToSection, refs }) => {
             onClick: () => window.open("https://drive.google.com/file/d/1DFzRiX0pxmD7pn5MZhb7b9T2Ffi6_gRA/view?usp=sharing", "_blank")
         },
         {
-            icon: <VscPerson size={isMobile ? 16 : 18} />,
-            label: "Experience",
-            onClick: () => scrollToSection(refs.experience, "experience")
+            icon: <VscCode size={isMobile ? 16 : 18} />,
+            label: "Projects",
+            onClick: () => scrollToSection(refs.projects, "projects")
         },
         {
             icon: <VscMail size={isMobile ? 16 : 18} />,
             label: "Contact",
             onClick: () => scrollToSection(refs.contact, "contact")
-        },
+        }
     ];
 
     return (
