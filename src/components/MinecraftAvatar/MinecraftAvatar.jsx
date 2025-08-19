@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 
-export default function MinecraftAvatar({ showNameOnHover = true }) {
+export default function MinecraftAvatar({ showNameOnHover = true, preloaded = false }) {
     const canvasRef = useRef(null);
     const viewerRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     const setNameTag = (name) => {
         if (viewerRef.current) {
@@ -19,6 +20,8 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
             if (!canvasRef.current) return;
 
             try {
+                setIsLoading(true);
+
                 const skinview3d = await import("skinview3d");
                 const { SkinViewer, WalkingAnimation } = skinview3d;
 
@@ -30,12 +33,20 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
                 });
                 viewerRef.current = viewer;
 
-                await viewer.loadSkin("https://crafatar.com/skins/aaf71728-7390-4175-bd18-9c36cd4697fc");
+                // Load skin with error handling
+                try {
+                    await viewer.loadSkin("https://crafatar.com/skins/aaf71728-7390-4175-bd18-9c36cd4697fc");
+                } catch (skinError) {
+                    console.warn("Failed to load skin:", skinError);
+                    // Continue without skin
+                }
 
+                // Load cape with error handling
                 try {
                     await viewer.loadCape("https://crafatar.com/capes/b876ec32-e396-476b-a115-8438d83c67d4");
-                } catch {
-                    console.log("No cape found");
+                } catch (capeError) {
+                    console.log("No cape found or failed to load cape");
+                    // Continue without cape
                 }
 
                 viewer.controls.enableRotate = true;
@@ -51,15 +62,26 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
                 viewer.camera.position.z = 80;
                 viewer.nameTag = "";
 
+                setIsLoading(false);
                 setIsReady(true);
+                setError(null);
             } catch (err) {
-                console.error("Failed to initialize:", err);
+                console.error("Failed to initialize avatar:", err);
                 setError(err.message);
                 setIsReady(false);
+                setIsLoading(false);
             }
         };
 
-        initViewer();
+        // If preloaded, initialize immediately, otherwise add a small delay
+        if (preloaded) {
+            initViewer();
+        } else {
+            const timeout = setTimeout(() => {
+                initViewer();
+            }, 100);
+            return () => clearTimeout(timeout);
+        }
 
         return () => {
             if (viewerRef.current) {
@@ -71,7 +93,7 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
                 viewerRef.current = null;
             }
         };
-    }, []);
+    }, [preloaded]);
 
     return (
         <div
@@ -83,11 +105,18 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
                 overflow: "visible", // let avatar stick out beyond container
             }}
         >
+            {/* Loading indicator */}
+            {/* {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                </div>
+            )} */}
+
             <canvas
                 ref={canvasRef}
                 className={
                     isReady
-                        ? "opacity-100 transition-opacity duration-300"
+                        ? "opacity-100 transition-opacity duration-500"
                         : "opacity-0"
                 }
                 style={{
@@ -101,23 +130,25 @@ export default function MinecraftAvatar({ showNameOnHover = true }) {
             />
 
             {/* Invisible hover zone (narrower, only around body) */}
-            <div
-                style={{
-                    position: "absolute",
-                    top: "50%",
-                    left: "50%",
-                    transform: "translate(-50%, -50%)",
-                    width: 200,   // slim width so hover doesn’t trigger too far away
-                    height: 700,
-                    zIndex: 18,
-                }}
-                onMouseEnter={() => {
-                    if (showNameOnHover) setNameTag("Co_Prime");
-                }}
-                onMouseLeave={() => {
-                    if (showNameOnHover) setNameTag("");
-                }}
-            />
+            {isReady && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        width: 200,   // slim width so hover doesn't trigger too far away
+                        height: 700,
+                        zIndex: 18,
+                    }}
+                    onMouseEnter={() => {
+                        if (showNameOnHover) setNameTag("Co_Prime");
+                    }}
+                    onMouseLeave={() => {
+                        if (showNameOnHover) setNameTag("");
+                    }}
+                />
+            )}
 
             {error && (
                 <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
