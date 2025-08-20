@@ -73,7 +73,7 @@ const HeroSection = ({ onScrollToProjects, onScrollToContact, onHeroComplete, av
     }, [startRotation, rotCounter]);
 
     return (
-        <section className="relative h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <section className="relative h-screen mx-auto max-w-[1440px] flex items-center justify-center px-4 sm:px-6 lg:px-8 overflow-hidden">
             <div className="flex items-center justify-center w-full max-w-7xl md:gap-x-6">
                 {/* Single container for all content that moves together */}
                 <motion.div
