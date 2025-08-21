@@ -3,9 +3,12 @@ import { useEffect, useRef, useState } from "react";
 export default function MinecraftAvatar({ showNameOnHover = true, preloaded = false }) {
     const canvasRef = useRef(null);
     const viewerRef = useRef(null);
+    const containerRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isInHoverZone, setIsInHoverZone] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
 
     const setNameTag = (name) => {
         if (viewerRef.current) {
@@ -49,7 +52,8 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                     // Continue without cape
                 }
 
-                viewer.controls.enableRotate = true;
+                // Start with rotation disabled
+                viewer.controls.enableRotate = false;
                 viewer.controls.enableZoom = false;
 
                 const walkingAnimation = new WalkingAnimation();
@@ -95,8 +99,80 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
         };
     }, [preloaded]);
 
+    // Handle global mouse up to stop dragging
+    useEffect(() => {
+        const handleGlobalMouseUp = () => {
+            if (isDragging) {
+                setIsDragging(false);
+                // Only disable rotation if we're not in the hover zone
+                if (!isInHoverZone && viewerRef.current) {
+                    viewerRef.current.controls.enableRotate = false;
+                }
+            }
+        };
+
+        window.addEventListener('mouseup', handleGlobalMouseUp);
+        return () => {
+            window.removeEventListener('mouseup', handleGlobalMouseUp);
+        };
+    }, [isDragging, isInHoverZone]);
+
+    const handleMouseMove = (e) => {
+        if (!containerRef.current || !isReady) return;
+
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        // Define the hover zone (narrow area around the body)
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const zoneWidth = 200;
+        const zoneHeight = 700;
+
+        const inZone =
+            x >= centerX - zoneWidth / 2 &&
+            x <= centerX + zoneWidth / 2 &&
+            y >= centerY - zoneHeight / 2 &&
+            y <= centerY + zoneHeight / 2;
+
+        if (inZone && !isInHoverZone) {
+            setIsInHoverZone(true);
+            if (showNameOnHover) setNameTag("Co_Prime");
+            if (viewerRef.current) {
+                viewerRef.current.controls.enableRotate = true;
+            }
+        } else if (!inZone && isInHoverZone && !isDragging) {
+            // Only remove hover state if not currently dragging
+            setIsInHoverZone(false);
+            if (showNameOnHover) setNameTag("");
+            if (viewerRef.current && !isDragging) {
+                viewerRef.current.controls.enableRotate = false;
+            }
+        }
+    };
+
+    const handleMouseLeave = () => {
+        // Don't disable rotation if currently dragging
+        if (!isDragging) {
+            setIsInHoverZone(false);
+            if (showNameOnHover) setNameTag("");
+            if (viewerRef.current) {
+                viewerRef.current.controls.enableRotate = false;
+            }
+        }
+    };
+
+    const handleMouseDown = () => {
+        // Start dragging if rotation is enabled
+        if (viewerRef.current && viewerRef.current.controls.enableRotate) {
+            setIsDragging(true);
+        }
+    };
+
     return (
         <div
+            ref={containerRef}
             className="flex justify-center items-center minecraft-avatar-container"
             style={{
                 width: 300,   // reduced from 400 → makes hero text breathe
@@ -104,6 +180,8 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                 position: "relative",
                 overflow: "visible", // let avatar stick out beyond container
             }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
         >
             {/* Loading indicator */}
             {/* {isLoading && (
@@ -127,25 +205,23 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                 }}
                 width={660}
                 height={840}
+                onMouseDown={handleMouseDown}
             />
 
-            {/* Invisible hover zone (narrower, only around body) */}
-            {isReady && (
+            {/* Visual feedback for hover zone (optional - shows the active area) */}
+            {isReady && (isInHoverZone || isDragging) && (
                 <div
                     style={{
                         position: "absolute",
                         top: "50%",
                         left: "50%",
                         transform: "translate(-50%, -50%)",
-                        width: 200,   // slim width so hover doesn't trigger too far away
+                        width: 200,
                         height: 700,
-                        zIndex: 18,
-                    }}
-                    onMouseEnter={() => {
-                        if (showNameOnHover) setNameTag("Co_Prime");
-                    }}
-                    onMouseLeave={() => {
-                        if (showNameOnHover) setNameTag("");
+                        // border: `2px dashed rgba(255, 255, 255, ${isDragging ? 0.2 : 0.1})`,
+                        borderRadius: "8px",
+                        pointerEvents: "none",
+                        zIndex: 15,
                     }}
                 />
             )}
