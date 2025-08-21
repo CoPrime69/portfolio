@@ -12,6 +12,7 @@ const funnelDisplay = Funnel_Display({
 export const metadata = {
   title: "Prakhar's Portfolio",
   description: "Full Stack Developer & AI Enthusiast from IIT Jodhpur",
+  metadataBase: new URL("https://coprime69.me"),
 };
 
 export default function RootLayout({ children }) {
