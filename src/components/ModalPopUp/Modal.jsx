@@ -102,14 +102,16 @@ const Modal = ({
 
                 {/* Modal Content with Optimized Scrollbar */}
                 <div
-                    className={`p-3 sm:p-6 overflow-y-auto max-h-[calc(90vh-80px)] sm:max-h-[calc(80vh-100px)] optimized-scrollbar ${contentClassName}`}
+                    className={`overflow-y-auto max-h-[calc(90vh-80px)] sm:max-h-[calc(80vh-100px)] optimized-scrollbar ${contentClassName}`}
                     style={{
                         scrollBehavior: 'auto', // Remove smooth scrolling for better performance
                         willChange: 'scroll-position',
                         transform: 'translate3d(0, 0, 0)' // GPU acceleration
                     }}
                 >
-                    {children}
+                    <div className="p-3 sm:p-6">
+                        {children}
+                    </div>
                 </div>
             </div>
 

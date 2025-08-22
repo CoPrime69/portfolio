@@ -62,7 +62,7 @@ const HeroSection = ({ onScrollToProjects, onScrollToContact, onHeroComplete, av
                     }, 1000);
                 }
             }, 500);
-        }, 500);
+        }, 800);
     };
 
     useEffect(() => {

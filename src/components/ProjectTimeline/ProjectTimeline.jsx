@@ -52,7 +52,7 @@ const ProjectTimeline = () => {
                     <div className="hidden sm:block absolute left-1/2 transform -translate-x-1/2 h-full w-[1px] bg-gradient-to-b from-[#00f5ff] via-[#e91e63] to-[#00ff88] blur-sm opacity-60" />
 
                     {/* Timeline line mobile */}
-                    <div className="sm:hidden absolute left-6 top-0 h-full w-[2px] bg-gradient-to-b from-[#00f5ff] via-[#a855f7] to-[#00ff88]" />
+                    <div className="sm:hidden absolute left-3 top-0 h-full w-[2px] bg-gradient-to-b from-[#00f5ff] via-[#a855f7] to-[#00ff88]" />
 
                     {/* Project cards */}
                     <div className="space-y-8 sm:space-y-12">
@@ -66,8 +66,8 @@ const ProjectTimeline = () => {
                                 </div>
 
                                 {/* Timeline dot - Mobile */}
-                                <div className="sm:hidden absolute left-6 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
-                                    <div className="w-3 h-3 bg-gradient-to-r from-[#a855f7] to-[#e91e63] rounded-full border-2 border-gray-900 shadow-lg relative">
+                                <div className="sm:hidden absolute left-3 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                                    <div className="w-4 h-4 bg-gradient-to-r from-[#a855f7] to-[#e91e63] rounded-full border-2 border-gray-900 shadow-lg relative">
                                         <div className="w-full h-full bg-gradient-to-r from-[#a855f7] to-[#e91e63] rounded-full blur-sm opacity-70 animate-pulse" />
                                     </div>
                                 </div>
@@ -92,7 +92,7 @@ const ProjectTimeline = () => {
                                 </div>
 
                                 {/* Mobile layout */}
-                                <div className="sm:hidden pl-12">
+                                <div className="sm:hidden pl-6">
                                     <ProjectCard project={project} />
                                 </div>
                             </div>
