@@ -58,6 +58,7 @@ export default function Home() {
   const [allowScroll, setAllowScroll] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [avatarPreloaded, setAvatarPreloaded] = useState(false);
+  const [isActiveTargetCursor, setIsActiveTargetCursor] = useState(false);
 
   // Refs for sections
   const homeRef = useRef(null);
@@ -150,14 +151,24 @@ export default function Home() {
     }
   }, [heroDone]);
 
-  // Toggle special body class for projects section
+  // Centralized cursor and body class management
   useEffect(() => {
+    // Determine if target cursor should be active
+    const shouldUseTargetCursor = currentSection === "projects" && !isMobile && heroDone;
+    setIsActiveTargetCursor(shouldUseTargetCursor);
+
+    // Toggle special body class for projects section
     if (currentSection === "projects") {
       document.body.classList.add("projects-section");
     } else {
       document.body.classList.remove("projects-section");
     }
-  }, [currentSection]);
+
+    // Cleanup function
+    return () => {
+      document.body.classList.remove("projects-section");
+    };
+  }, [currentSection, isMobile, heroDone]);
 
   return (
     <div className="relative">
@@ -212,7 +223,10 @@ export default function Home() {
 
           {/* Projects Section */}
           <div ref={projectsRef} data-section="projects">
-            <ProjectsSection isActive={currentSection === "projects"} />
+            <ProjectsSection
+              isActive={currentSection === "projects"}
+              isActiveTargetCursor={isActiveTargetCursor}
+            />
           </div>
 
           {/* Contact Section */}

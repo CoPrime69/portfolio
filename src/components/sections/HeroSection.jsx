@@ -59,10 +59,10 @@ const HeroSection = ({ onScrollToProjects, onScrollToContact, onHeroComplete, av
                     // Mobile behavior
                     setTimeout(() => {
                         onHeroComplete?.();
-                    }, 2000);
+                    }, 1000);
                 }
             }, 500);
-        }, 800);
+        }, 500);
     };
 
     useEffect(() => {
