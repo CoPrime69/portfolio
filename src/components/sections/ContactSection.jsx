@@ -6,7 +6,7 @@ const ContactSection = () => {
     const socials = [
         { icon: <Github size={20} />, href: "https://github.com/CoPrime69", label: "GitHub" },
         { icon: <Linkedin size={20} />, href: "https://www.linkedin.com/in/prakhar-srivastava-b539172ab/", label: "LinkedIn" },
-        // { icon: <Twitter size={20} />, href: "https://twitter.com", label: "Twitter" }
+        { icon: <Mail size={20} />, href: "mailto:prakhars2558@gmail.com", label: "Mail" },
     ];
 
     return (
@@ -35,15 +35,15 @@ const ContactSection = () => {
                     </p>
 
                     <div className="flex justify-center mb-6 sm:mb-8 px-4">
-                        <motion.a
+                        <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
-                            href="mailto:prakhars2558@gmail.com"
+                            onClick={() => window.location.href = "mailto:prakhars2558@gmail.com"}
                             className="px-6 sm:px-8 py-3 bg-gradient-to-r from-[#00f5ff] to-[#ff006e] text-white rounded-lg font-semibold hover:shadow-xl transition-all inline-flex items-center gap-2 text-sm sm:text-base w-full sm:w-auto max-w-xs sm:max-w-none justify-center"
                         >
                             <Mail size={18} />
                             Send Email
-                        </motion.a>
+                        </motion.button>
                     </div>
 
 
