@@ -21,23 +21,22 @@ const Modal = ({
 }) => {
     // Handle body scroll lock and cursor reset
     useEffect(() => {
-        if (isOpen) {
-            // Lock body scroll
-            document.body.style.overflow = 'hidden';
-            document.body.style.cursor = 'auto';
+        if (!isOpen) return;
 
-            // Set cursor for modal element
-            const modalElement = document.querySelector('[data-modal="true"]');
-            if (modalElement) {
-                modalElement.style.cursor = 'auto';
-            }
+        // Restore whatever was there before rather than hard-coding 'unset'.
+        // Two modals can be open at once (the dock is always reachable), and
+        // closing either one used to unlock scrolling while the other was
+        // still up. TargetCursor also owns `cursor`, so the same applies.
+        const prevOverflow = document.body.style.overflow;
+        const prevCursor = document.body.style.cursor;
 
-            // Cleanup function
-            return () => {
-                document.body.style.overflow = 'unset';
-                document.body.style.cursor = '';
-            };
-        }
+        document.body.style.overflow = 'hidden';
+        document.body.style.cursor = 'auto';
+
+        return () => {
+            document.body.style.overflow = prevOverflow;
+            document.body.style.cursor = prevCursor;
+        };
     }, [isOpen]);
 
     // Handle escape key
@@ -66,6 +65,9 @@ const Modal = ({
         <div
             className={`fixed inset-0 bg-black/70 z-[9999] flex items-center justify-center p-2 sm:p-4 ${backdropClassName}`}
             data-modal="true"
+            role="dialog"
+            aria-modal="true"
+            aria-label={typeof title === "string" ? title : undefined}
             style={{ cursor: 'auto' }}
             onClick={handleBackdropClick}
             {...props}
@@ -83,7 +85,7 @@ const Modal = ({
                 {showHeader && (
                     <div className={`flex items-center justify-between p-4 sm:p-6 border-b border-gray-700 ${headerClassName}`}>
                         {title && (
-                            <h2 className="text-xl sm:text-2xl font-bold text-white">
+                            <h2 className="mc-title text-lg sm:text-xl text-white">
                                 {title}
                             </h2>
                         )}

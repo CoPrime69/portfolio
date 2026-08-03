@@ -1,45 +1,302 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   MINECRAFT STRATA DESIGN SYSTEM
+   --------------------------------------------------------------------------
+   All artwork here is original: block textures are generated from CSS
+   gradients and a hand-authored SVG noise tile, not Mojang asset files.
+
+   The page reads as a vertical descent. The hero is the night sky (which is
+   why it keeps the existing near-black base), and each section below it is a
+   deeper stratum. Every stratum stays dark so body copy keeps its contrast
+   against the textured backgrounds - the strata differ in hue, not lightness.
+   ========================================================================== */
+
 :root {
-  --background: #060010;  /* your portfolio bg */
-  --foreground: #ffffff;  /* keep text white */
+  /* Neutral dark blue-black. Deliberately NOT purple - the previous #060010
+     cast a violet tint over every surface layered on top of it. */
+  --background: #070b14;
+  --foreground: #ffffff;
+
+  /* --- Strata: the vertical journey, sky down to bedrock -----------------
+     These mirror the stops in StrataBackdrop.jsx; keep the two in sync. */
+  --strata-sky: #070b14;        /* hero - night sky */
+  --strata-grass: #0a1710;      /* surface / experience */
+  --strata-dirt: #150f09;       /* topsoil transition */
+  --strata-stone: #131519;      /* projects - ore-bearing rock */
+  --strata-deepslate: #0d0f12;  /* skills - deep rock */
+  --strata-bedrock: #0a0a0c;    /* contact - the floor of the world */
+
+  /* --- Ore accents: one per section, semantic not decorative -------------- */
+  --ore-diamond: #4aedd9;   /* projects   */
+  --ore-emerald: #17dd62;   /* experience */
+  --ore-lapis: #4a6dd9;     /* education  */
+  --ore-gold: #fcee4b;      /* leadership */
+  --ore-redstone: #ff3b3b;  /* alerts     */
+  --ore-copper: #e77c56;    /* courses    */
+  --ore-amethyst: #b57cff;  /* contact    */
+
+  /* Legacy accent kept so the existing hero/cyan identity survives */
+  --accent-cyan: #00f5ff;
+  --accent-pink: #ff006e;
+
+  /* --- Minecraft GUI panel ramp ------------------------------------------ */
+  --gui-light: #c6c6c6;
+  --gui-mid: #8b8b8b;
+  --gui-dark: #373737;
+  --gui-darkest: #1d1d1d;
+
+  /* One on-screen block. Everything blocky snaps to this grid. */
+  --mc-block: 64px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-strata-sky: var(--strata-sky);
+  --color-strata-grass: var(--strata-grass);
+  --color-strata-dirt: var(--strata-dirt);
+  --color-strata-stone: var(--strata-stone);
+  --color-strata-deepslate: var(--strata-deepslate);
+  --color-strata-bedrock: var(--strata-bedrock);
+
+  --color-ore-diamond: var(--ore-diamond);
+  --color-ore-emerald: var(--ore-emerald);
+  --color-ore-lapis: var(--ore-lapis);
+  --color-ore-gold: var(--ore-gold);
+  --color-ore-redstone: var(--ore-redstone);
+  --color-ore-copper: var(--ore-copper);
+  --color-ore-amethyst: var(--ore-amethyst);
+
+  --color-accent-cyan: var(--accent-cyan);
+  --color-accent-pink: var(--accent-pink);
+
+  --font-pixel: "Minecraft", ui-monospace, "Courier New", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* The site is dark by design; don't let the OS light/dark preference
+   repaint the strata out from under the textures. */
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* NOTE: previously hard-set to Arial, which overrode the Funnel Display
+     font loaded in layout.js. The font class on <body> now wins. */
 }
 
-/* Try to load Minecraft font, but don't fail if it doesn't work */
 canvas {
   position: relative;
   z-index: 10;
 }
 
-/* Minecraft nametag styling using the proper font */
-.minecraft-nametag {
-  font-family: "Minecraft", 'Courier New', monospace;
-  text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
-  color: #ffffff; /* Default white color */
+/* ==========================================================================
+   TYPOGRAPHY
+   ========================================================================== */
+
+.font-pixel,
+.mc-title {
+  font-family: "Minecraft", ui-monospace, "Courier New", monospace;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  /* Minecraft's signature hard drop shadow, offset by one "pixel" */
+  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.85);
 }
 
-/* Ensure proper rendering context */
+.mc-title {
+  line-height: 1.25;
+}
+
+/* Minecraft nametag styling using the proper font */
+.minecraft-nametag {
+  font-family: "Minecraft", "Courier New", monospace;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.8);
+  color: #ffffff;
+}
+
 .minecraft-avatar-container {
   position: relative;
   isolation: isolate;
+}
+
+/* ==========================================================================
+   BLOCK SURFACE TEXTURE
+   --------------------------------------------------------------------------
+   Original artwork: a 16x16 hand-authored noise tile, no Mojang asset files.
+
+   This is a SURFACE treatment for cards and panels - it is deliberately NOT
+   used on the page background. The dot-grid backdrop stays constant and does
+   not react to scroll; the Minecraft character comes from texturing the
+   existing card shapes instead.
+   ========================================================================== */
+
+:root {
+  --mc-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cg fill='%23000' opacity='0.30'%3E%3Crect x='1' y='0' width='1' height='1'/%3E%3Crect x='5' y='1' width='2' height='1'/%3E%3Crect x='11' y='0' width='1' height='2'/%3E%3Crect x='3' y='3' width='1' height='1'/%3E%3Crect x='8' y='4' width='2' height='1'/%3E%3Crect x='14' y='3' width='1' height='2'/%3E%3Crect x='0' y='6' width='2' height='1'/%3E%3Crect x='6' y='7' width='1' height='1'/%3E%3Crect x='10' y='6' width='1' height='2'/%3E%3Crect x='13' y='9' width='2' height='1'/%3E%3Crect x='2' y='10' width='1' height='2'/%3E%3Crect x='7' y='11' width='2' height='1'/%3E%3Crect x='11' y='12' width='1' height='1'/%3E%3Crect x='4' y='14' width='2' height='1'/%3E%3Crect x='9' y='14' width='1' height='2'/%3E%3Crect x='15' y='13' width='1' height='1'/%3E%3C/g%3E%3Cg fill='%23fff' opacity='0.06'%3E%3Crect x='3' y='1' width='1' height='1'/%3E%3Crect x='9' y='2' width='2' height='1'/%3E%3Crect x='0' y='4' width='1' height='1'/%3E%3Crect x='12' y='5' width='1' height='1'/%3E%3Crect x='5' y='6' width='1' height='2'/%3E%3Crect x='8' y='9' width='1' height='1'/%3E%3Crect x='1' y='9' width='2' height='1'/%3E%3Crect x='14' y='11' width='1' height='1'/%3E%3Crect x='6' y='13' width='1' height='1'/%3E%3Crect x='12' y='15' width='2' height='1'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Tileable block texture for card/panel fills. Sits under the content and
+   above the card's own background colour. */
+.mc-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--mc-noise);
+  background-size: 48px 48px;
+  background-repeat: repeat;
+  opacity: 0.5;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+/* ==========================================================================
+   BEVELS & PANELS
+   --------------------------------------------------------------------------
+   Minecraft's UI language: hard 3px bevels, zero border-radius anywhere.
+   Light on the top/left, dark on the bottom/right.
+   ========================================================================== */
+
+.mc-bevel {
+  border-radius: 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgba(255, 255, 255, 0.28) rgba(0, 0, 0, 0.55) rgba(0, 0, 0, 0.55) rgba(255, 255, 255, 0.28);
+}
+
+/* Pressed / inset variant - light and dark swapped */
+.mc-bevel-inset {
+  border-radius: 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgba(0, 0, 0, 0.55) rgba(255, 255, 255, 0.22) rgba(255, 255, 255, 0.22) rgba(0, 0, 0, 0.55);
+}
+
+.mc-panel {
+  border-radius: 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgba(255, 255, 255, 0.22) rgba(0, 0, 0, 0.6) rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.22);
+  background-color: rgba(12, 12, 18, 0.86);
+  backdrop-filter: blur(6px);
+}
+
+/* An inventory slot */
+.mc-slot {
+  border-radius: 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgba(0, 0, 0, 0.55) rgba(255, 255, 255, 0.2) rgba(255, 255, 255, 0.2) rgba(0, 0, 0, 0.55);
+  background-color: rgba(139, 139, 139, 0.14);
+}
+
+.mc-btn {
+  border-radius: 0;
+  border-style: solid;
+  border-width: 3px;
+  border-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.6) rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.3);
+  background-color: rgba(107, 107, 107, 0.5);
+  font-family: "Minecraft", ui-monospace, monospace;
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.75);
+  transition: background-color 120ms steps(2), border-color 120ms steps(2);
+}
+
+.mc-btn:hover {
+  background-color: rgba(140, 160, 200, 0.55);
+  border-color: rgba(255, 255, 255, 0.45) rgba(0, 0, 0, 0.6) rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.45);
+}
+
+.mc-btn:active {
+  border-color: rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.6);
+}
+
+/* Keyboard focus has to survive the border-swapping above.
+   The bare `button` selector is the fallback: controls that aren't .mc-btn or
+   .mc-slot (the modal close button, the inline "How it works" toggles) would
+   otherwise fall back to the UA ring, which is near-invisible on this palette. */
+.mc-btn:focus-visible,
+.mc-slot:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--ore-gold);
+  outline-offset: 2px;
+}
+
+/* ==========================================================================
+   ORE GLOW
+   Ore veins in the stone are the only things that emit light down here.
+   ========================================================================== */
+
+.mc-ore {
+  position: relative;
+  --ore: var(--ore-diamond);
+}
+
+.mc-ore-glow {
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--ore) 35%, transparent),
+    0 0 28px 2px color-mix(in srgb, var(--ore) 30%, transparent);
+}
+
+@keyframes mc-ore-pulse {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+.mc-ore-pulse {
+  animation: mc-ore-pulse 2.8s steps(8, end) infinite;
+}
+
+/* ==========================================================================
+   ACHIEVEMENT TOAST
+   ========================================================================== */
+
+.mc-toast {
+  border-radius: 0;
+  border: 3px solid var(--ore-gold);
+  background-color: rgba(10, 10, 14, 0.94);
+  font-family: "Minecraft", ui-monospace, monospace;
+}
+
+/* ==========================================================================
+   OFF-SCREEN SECTIONS
+   --------------------------------------------------------------------------
+   Every section mounts in one burst the moment the hero finishes, at the same
+   time the avatar's WebGL loop is spinning up. `content-visibility: auto` lets
+   the browser skip layout and paint for sections that are off-screen, which
+   removes most of that spike. `contain-intrinsic-size` keeps the scrollbar
+   honest before a section has ever been rendered.
+   ========================================================================== */
+
+/* `content-visibility: auto` was tried here and REMOVED deliberately. It
+   changes scrollHeight as sections render in and out, which left
+   framer-motion's cached page height stale: scrollYProgress topped out around
+   0.78 at the bottom of the page, so the background never reached bedrock and
+   the depth meter stopped at Y:-36 instead of Y:-64. The load-spike it was
+   added for is handled instead by capping the avatar's pixelRatio and by
+   guarding DepthMeter's per-scroll setState. */
+.section-slice {
+  /* layout hook only, no containment */
+}
+
+/* ==========================================================================
+   PIXEL RENDERING
+   ========================================================================== */
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* ==========================================================================
+   MOTION
+   Everything steps rather than eases - Minecraft has no sub-pixel motion.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

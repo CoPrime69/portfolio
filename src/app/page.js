@@ -1,53 +1,47 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   HeroSection,
-  ProjectsSection,
+  StatsHUD,
   ExperienceSection,
+  ProjectsSection,
+  TechStackSection,
+  EducationSection,
+  LeadershipSection,
   ContactSection,
   NavigationDock,
 } from "../components/sections";
-import { motion, AnimatePresence } from "framer-motion";
 import MobileAvatar from "../components/MobileAvatar/MobileAvatar";
+import DepthMeter from "../components/Strata/DepthMeter";
+import TargetCursor from "../components/TargetCursor/TargetCursor";
+import { SKIN_URL } from "../components/MinecraftAvatar/MinecraftAvatar";
+import { profile } from "../data/site";
 
 // Time & Location Component
 const TimeLocationWidget = () => {
-  const [time, setTime] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+  const [time, setTime] = useState("");
 
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-      });
-      setTime(timeString);
+      setTime(
+        new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })
+      );
     };
 
     updateTime();
     const interval = setInterval(updateTime, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className={`bg-white/10 backdrop-blur-lg rounded-lg p-3 sm:p-4 text-white shadow-lg ${isMobile ? 'text-sm' : ''}`} style={{ fontWeight: 300 }}>
-      <div className="text-sm sm:text-md opacity-80 mb-1">Jodhpur, India</div>
-      <div className="text-base sm:text-lg" style={{ fontWeight: 300 }}>
-        {time}
-      </div>
+    <div className="mc-panel px-3 py-2 text-white sm:px-4 sm:py-3">
+      <div className="text-[10px] uppercase tracking-wider text-gray-400">{profile.location}</div>
+      <div className="font-pixel mt-1 text-sm sm:text-base">{time}</div>
     </div>
   );
 };
@@ -56,24 +50,26 @@ export default function Home() {
   const [currentSection, setCurrentSection] = useState("home");
   const [heroDone, setHeroDone] = useState(false);
   const [allowScroll, setAllowScroll] = useState(false);
+  const [mountSections, setMountSections] = useState(false);
+  // Avatar, hotbar, depth meter and clock all reveal on this one flag.
+  const [showChrome, setShowChrome] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [avatarPreloaded, setAvatarPreloaded] = useState(false);
-  const [isActiveTargetCursor, setIsActiveTargetCursor] = useState(false);
 
   // Refs for sections
   const homeRef = useRef(null);
-  const projectsRef = useRef(null);
+  const educationRef = useRef(null);
   const experienceRef = useRef(null);
+  const projectsRef = useRef(null);
+  const techstackRef = useRef(null);
+  const leadershipRef = useRef(null);
   const contactRef = useRef(null);
 
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Pre-load avatar on component mount
@@ -83,22 +79,14 @@ export default function Home() {
         // Pre-load the skinview3d library
         await import("skinview3d");
 
-        // Pre-load skin and cape images
-        const skinPromise = new Promise((resolve, reject) => {
+        // Skin ships from /public now, so this resolves off the local server
+        await new Promise((resolve, reject) => {
           const img = new Image();
           img.onload = resolve;
           img.onerror = reject;
-          img.src = "https://crafatar.com/skins/aaf71728-7390-4175-bd18-9c36cd4697fc";
+          img.src = SKIN_URL;
         });
 
-        const capePromise = new Promise((resolve) => {
-          const img = new Image();
-          img.onload = resolve;
-          img.onerror = resolve; // Don't fail if cape doesn't exist
-          img.src = "https://crafatar.com/capes/b876ec32-e396-476b-a115-8438d83c67d4";
-        });
-
-        await Promise.all([skinPromise, capePromise]);
         setAvatarPreloaded(true);
       } catch (error) {
         console.warn("Avatar preload failed:", error);
@@ -118,30 +106,52 @@ export default function Home() {
   useEffect(() => {
     if (!allowScroll) return;
 
-    const observerOptions = {
-      root: null,
-      rootMargin: "-40% 0px -40% 0px",
-      threshold: 0,
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setCurrentSection(entry.target.getAttribute("data-section"));
+          }
+        });
+      },
+      { root: null, rootMargin: "-40% 0px -40% 0px", threshold: 0 }
+    );
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const sectionId = entry.target.getAttribute("data-section");
-          setCurrentSection(sectionId);
-        }
-      });
-    };
-
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    const sections = [homeRef, projectsRef, experienceRef, contactRef];
-    sections.forEach((ref) => {
+    [
+      homeRef, educationRef, experienceRef, projectsRef,
+      techstackRef, leadershipRef, contactRef,
+    ].forEach((ref) => {
       if (ref.current) observer.observe(ref.current);
     });
 
     return () => observer.disconnect();
   }, [allowScroll]);
+
+  /**
+   * PERF: mount the below-the-fold sections PART WAY THROUGH the hero rather
+   * than all at once when it finishes.
+   *
+   * They used to be gated on `heroDone`, so seven sections committed in a
+   * single synchronous render at the exact moment the avatar's WebGL context
+   * was initialising and the hotbar and depth meter appeared. That pile-up is
+   * what made the reveal stutter. Mounting them early costs nothing visually
+   * (they are off-screen and the page cannot be scrolled yet) and spreads the
+   * work across a quiet part of the intro.
+   */
+  useEffect(() => {
+    const t = setTimeout(() => setMountSections(true), 2200);
+    return () => clearTimeout(t);
+  }, []);
+
+  // The page must not scroll until the hero has finished, now that the
+  // sections below it exist before that point.
+  useEffect(() => {
+    if (heroDone) return;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [heroDone]);
 
   // Reset scroll to top on reload + after hero animation
   useEffect(() => {
@@ -151,47 +161,31 @@ export default function Home() {
     }
   }, [heroDone]);
 
-  // Centralized cursor and body class management
-  useEffect(() => {
-    // Determine if target cursor should be active
-    const shouldUseTargetCursor = currentSection === "projects" && !isMobile && heroDone;
-    setIsActiveTargetCursor(shouldUseTargetCursor);
-
-    // Toggle special body class for projects section
-    if (currentSection === "projects") {
-      document.body.classList.add("projects-section");
-    } else {
-      document.body.classList.remove("projects-section");
-    }
-
-    // Cleanup function
-    return () => {
-      document.body.classList.remove("projects-section");
-    };
-  }, [currentSection, isMobile, heroDone]);
+  // Target cursor belongs to the Projects section only.
+  const targetCursorActive = currentSection === "projects" && !isMobile && heroDone;
 
   return (
     <div className="relative">
-      {/* Hero Section */}
+      {/* Hero - the night sky, layout unchanged */}
       <div ref={homeRef} data-section="home" className="relative z-10">
         <HeroSection
           onScrollToProjects={() => scrollToSection(projectsRef, "projects")}
           onScrollToContact={() => scrollToSection(contactRef, "contact")}
           onHeroComplete={() => setHeroDone(true)}
+          onChromeReveal={() => setShowChrome(true)}
           avatarPreloaded={avatarPreloaded}
         />
       </div>
 
       {/* Top Right - Time & Location (non-sticky) */}
       <AnimatePresence>
-        {heroDone && (
+        {showChrome && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            className="absolute top-4 sm:top-6 right-4 sm:right-6 z-40"
-            style={{ fontWeight: 300 }}
+            transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+            className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6"
           >
             <TimeLocationWidget />
           </motion.div>
@@ -200,64 +194,80 @@ export default function Home() {
 
       {/* Top Left - Mobile Avatar (sticky) */}
       <AnimatePresence>
-        {heroDone && isMobile && (
+        {showChrome && isMobile && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1], delay: 0.8 }}
-            className="fixed top-4 left-4 z-50"
+            transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+            className="fixed left-4 top-4 z-50"
           >
             <MobileAvatar />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Render other sections ONLY after hero is done */}
-      {allowScroll && (
+      {/* Descend. Mounted during the hero, not at the end of it (see above). */}
+      {mountSections && (
         <>
-          {/* Experience Section */}
-          <div ref={experienceRef} data-section="experience">
+          {/* Education leads the descent */}
+          <div ref={educationRef} data-section="education" className="section-slice">
+            <EducationSection />
+          </div>
+
+          <div ref={experienceRef} data-section="experience" className="section-slice">
             <ExperienceSection />
           </div>
 
-          {/* Projects Section */}
-          <div ref={projectsRef} data-section="projects">
-            <ProjectsSection
-              isActive={currentSection === "projects"}
-              isActiveTargetCursor={isActiveTargetCursor}
-            />
+          <div ref={projectsRef} data-section="projects" className="section-slice">
+            <ProjectsSection />
           </div>
 
-          {/* Contact Section */}
-          <div ref={contactRef} data-section="contact">
+          <div ref={techstackRef} data-section="techstack" className="section-slice">
+            <TechStackSection />
+          </div>
+
+          <div ref={leadershipRef} data-section="leadership" className="section-slice">
+            <LeadershipSection />
+          </div>
+
+          {/* Summary numbers land at the end, as a wrap-up */}
+          <StatsHUD />
+
+          <div ref={contactRef} data-section="contact" className="section-slice">
             <ContactSection />
           </div>
         </>
       )}
 
-      {/* Navigation Dock */}
-      <AnimatePresence>
-        {heroDone && (
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 40 }}
-            transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
-            className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50"
-          >
-            <NavigationDock
-              scrollToSection={scrollToSection}
-              refs={{
-                home: homeRef,
-                projects: projectsRef,
-                experience: experienceRef,
-                contact: contactRef,
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Mounted once so it can cross-fade rather than popping in, but only
+          ever visible while the Projects section is the active one. */}
+      {!isMobile && showChrome && (
+        <TargetCursor
+          spinDuration={2.5}
+          hideDefaultCursor
+          targetSelector=".cursor-target"
+          active={targetCursorActive}
+        />
+      )}
+
+      {/* Depth readout + hotbar */}
+      {showChrome && <DepthMeter />}
+      {showChrome && (
+        <NavigationDock
+          scrollToSection={scrollToSection}
+          currentSection={currentSection}
+          refs={{
+            home: homeRef,
+            education: educationRef,
+            experience: experienceRef,
+            projects: projectsRef,
+            techstack: techstackRef,
+            leadership: leadershipRef,
+            contact: contactRef,
+          }}
+        />
+      )}
     </div>
   );
 }
