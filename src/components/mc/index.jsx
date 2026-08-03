@@ -15,6 +15,7 @@ export const ORE = {
     redstone: "var(--ore-redstone)",
     copper: "var(--ore-copper)",
     amethyst: "var(--ore-amethyst)",
+    iron: "var(--ore-iron)",
 };
 
 export const oreColor = (name) => ORE[name] ?? ORE.diamond;

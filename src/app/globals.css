@@ -30,11 +30,12 @@
   /* --- Ore accents: one per section, semantic not decorative -------------- */
   --ore-diamond: #4aedd9;   /* projects   */
   --ore-emerald: #17dd62;   /* experience */
-  --ore-lapis: #4a6dd9;     /* education  */
+  --ore-lapis: #7c9bff;     /* education. Was #4a6dd9, only 4.16:1 on panels (below AA). */
   --ore-gold: #fcee4b;      /* leadership */
   --ore-redstone: #ff3b3b;  /* alerts     */
   --ore-copper: #e77c56;    /* courses    */
-  --ore-amethyst: #b57cff;  /* contact    */
+  --ore-iron: #b6bcc8;      /* neutral    */
+  --ore-amethyst: #b57cff;  /* retained for compatibility; unused - purple was pulled from the palette */
 
   /* Legacy accent kept so the existing hero/cyan identity survives */
   --accent-cyan: #00f5ff;
@@ -68,6 +69,7 @@
   --color-ore-redstone: var(--ore-redstone);
   --color-ore-copper: var(--ore-copper);
   --color-ore-amethyst: var(--ore-amethyst);
+  --color-ore-iron: var(--ore-iron);
 
   --color-accent-cyan: var(--accent-cyan);
   --color-accent-pink: var(--accent-pink);

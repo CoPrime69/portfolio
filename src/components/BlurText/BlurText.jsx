@@ -93,7 +93,11 @@ const BlurText = ({
   const Tag = as;
 
   return (
-    <Tag ref={ref} className={`blur-text ${className} flex flex-wrap`}>
+    // `justify-center` is required, not cosmetic: this is a flex container, so
+    // the `text-align: center` coming in via className has no effect on the
+    // word spans. Without it the headline packs to flex-start and sits
+    // left-ragged while everything below it is centred.
+    <Tag ref={ref} className={`blur-text ${className} flex flex-wrap justify-center`}>
       {elements.map((segment, index) => {
         const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
 

@@ -10,6 +10,9 @@ import {
     SiLangchain, SiScikitlearn, SiPandas, SiNumpy, SiStreamlit, SiGooglecolab, SiJupyter,
     SiGit, SiGithub, SiGitlab, SiPostman, SiFigma, SiVite, SiWebpack, SiSlack, SiTableau,
 } from "react-icons/si";
+// No SiPinecone exists in react-icons; a generic database glyph beats
+// rendering the literal string "Pc" in the tile.
+import { Database } from "lucide-react";
 
 /**
  * Tech stack, reconciled against every resume variant.
@@ -41,12 +44,12 @@ export const TECH_CATEGORIES = [
 /** Category -> ore token, so a technology's colour is derived, never hardcoded. */
 export const CATEGORY_ORE = {
     Languages: "diamond",
-    Frontend: "amethyst",
+    Frontend: "redstone",
     Backend: "emerald",
     Databases: "lapis",
     "Cloud & DevOps": "copper",
     "AI/ML": "gold",
-    Tools: "redstone",
+    Tools: "iron",
 };
 
 const technologiesRaw = [
@@ -82,7 +85,7 @@ const technologiesRaw = [
     { Icon: SiPostgresql, label: "PostgreSQL", category: "Databases" },
     { Icon: SiMongodb, label: "MongoDB", category: "Databases" },
     { Icon: SiRedis, label: "Redis", category: "Databases" },
-    { Icon: null, short: "Pc", label: "Pinecone", category: "Databases" },
+    { Icon: Database, short: "Pc", label: "Pinecone", category: "Databases" },
     { Icon: SiPrisma, label: "Prisma", category: "Databases" },
     { Icon: SiSupabase, label: "Supabase", category: "Databases" },
 

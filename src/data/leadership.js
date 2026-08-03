@@ -24,7 +24,7 @@ const leadership = [
         org: "Prometeo, IIT Jodhpur's Technical Festival",
         period: "Oct 2025 - Present",
         rarity: "challenge",
-        ore: "amethyst",
+        ore: "copper",
         description:
             "Spearheaded 4 large-scale technical events and 2 national-level hackathons for 1000+ participants, leading a 25+ member cross-functional core team across logistics, sponsorship and tech operations.",
         metrics: [

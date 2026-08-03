@@ -100,7 +100,9 @@ const FullStackModal = ({ isOpen, onClose }) => {
                     })}
                 </div>
 
-                <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 lg:grid-cols-6">
+                {/* min-height pins the panel so changing filter cannot resize it and
+                    slide the filter row out from under the cursor. */}
+                <div className="grid min-h-[420px] grid-cols-3 content-start gap-2.5 sm:grid-cols-5 lg:grid-cols-6">
                     {filtered.map((tech) => (
                         <TechTile
                             key={tech.label}

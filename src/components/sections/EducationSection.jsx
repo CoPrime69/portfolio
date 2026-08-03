@@ -153,6 +153,9 @@ const EducationSection = () => {
                         }}
                         transition={{ duration: 0.3 }}
                         className="overflow-hidden"
+                        // Collapsed via height, so without this the 19 courses
+                        // stay in the accessibility tree and in Ctrl-F.
+                        aria-hidden={!showCourses}
                     >
                         <div className="mt-6 space-y-5">
                             {TRACKS.map((track) => {

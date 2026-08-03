@@ -121,7 +121,7 @@ const projects = [
         year: "2025",
         period: "Feb 2025 - Apr 2025",
         featured: true,
-        ore: "amethyst",
+        ore: "lapis",
         category: "Full-Stack Products",
         hook: "Reads a stack of resumes the way a recruiter would - by meaning rather than keywords - and ranks them against the role.",
         bullets: [
@@ -296,7 +296,7 @@ const projects = [
         year: "2024",
         period: "3 months",
         featured: false,
-        ore: "amethyst",
+        ore: "copper",
         category: "Full-Stack Products",
         hook: "Finds the most influential people in a social graph and the clusters they sit inside, fast enough to run on large networks.",
         bullets: [

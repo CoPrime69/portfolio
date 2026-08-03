@@ -130,7 +130,7 @@ const Row = ({ project, open, onToggle }) => {
                                 className="mt-3 flex items-center gap-1.5 text-[11px] font-medium hover:cursor-pointer"
                                 style={{ color: accent }}
                             >
-                                <span>{open ? "Show less" : "Read more"}</span>
+                                <span>{open ? "Read less" : "Read more"}</span>
                                 <motion.span
                                     animate={{ rotate: open ? 180 : 0 }}
                                     transition={{ duration: 0.2 }}

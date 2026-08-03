@@ -20,8 +20,10 @@ import ResumePicker from "./ResumePicker";
 const Hotbar = ({ items, activeId }) => {
     const [hovered, setHovered] = useState(null);
 
+    // Base sizing keeps 8 slots inside 375px (8*40 + 7*2 + 8 = 342). At 44px
+    // slots this overflowed below ~388px and clipped Home and Contact.
     return (
-        <div className="mc-bevel flex items-end gap-1 bg-black/55 p-1 backdrop-blur-sm">
+        <div className="mc-bevel flex items-end gap-0.5 bg-black/55 p-1 backdrop-blur-sm sm:gap-1">
             {items.map((item) => {
                 const active = item.id === activeId;
                 const showLabel = hovered === item.id;
@@ -50,7 +52,7 @@ const Hotbar = ({ items, activeId }) => {
                             onBlur={() => setHovered(null)}
                             aria-label={item.label}
                             aria-current={active ? "true" : undefined}
-                            className="mc-slot flex h-11 w-11 items-center justify-center text-gray-200 transition-colors hover:cursor-pointer hover:text-white sm:h-12 sm:w-12"
+                            className="mc-slot flex h-10 w-10 items-center justify-center text-gray-200 transition-colors hover:cursor-pointer hover:text-white sm:h-12 sm:w-12"
                             style={
                                 active
                                     ? {
