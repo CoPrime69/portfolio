@@ -1,297 +1,171 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { ChevronDown, ChevronUp, ExternalLink, Calendar, MapPin, Star, Code } from "lucide-react";
-import TechStackModal from "./TechStackModal"; // Import the new modal component
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown, ExternalLink, MapPin } from "lucide-react";
+import experience from "../../data/experience";
+import { sections } from "../../data/site";
+import { SectionHeading, BlockPanel, MetricChip, TechTag, OreNode, oreColor } from "../mc";
 
-const ExperienceSection = () => {
-    const [expandedExp, setExpandedExp] = useState(null);
-    const [isTechStackModalOpen, setIsTechStackModalOpen] = useState(false);
+/**
+ * The surface stratum. Roles descend in reverse-chronological order, so
+ * scrolling down is also travelling back through the career.
+ *
+ * Copy is two-layer: the `hook` always reads, the resume-accurate `bullets`
+ * expand on demand.
+ */
 
-    const experiences = [
-        {
-            title: "Full Stack Developer Intern",
-            company: "Anginat",
-            period: "Mar 2025 – July 2025",
-            duration: "5 months",
-            location: "Remote",
-            description: "Designed and developed a full-scale ERP platform for educational institutes from the ground up. Built the company website (anginat.com) and engineered a comprehensive ERP dashboard to streamline academic workflows.",
-            highlights: [
-                "Developed anginat.com from ground up using Next.js, Node.js, and Python",
-                "Built student learning dashboard with React.js frontend for seamless user experience",
-                "Integrated advanced AI features including TTS and voice cloning capabilities",
-                "Architected and migrated database infrastructure to MongoDB for enhanced performance",
-                "Deployed full-stack solutions on AWS and Google Cloud platforms"
-            ],
-            technologies: ["Next.js", "AWS", "MongoDB", "Node.js", "Google Cloud", "React.js", "Express.js", "Python", "Supabase"],
-            achievements: "Major projects delivered",
-            link: "https://anginat.com"
-        },
-        {
-            title: "Backend Developer",
-            company: "IIT Jodhpur",
-            period: "Aug 2024 – Dec 2024",
-            duration: "5 months",
-            location: "Jodhpur, India",
-            description: "Developed a comprehensive face recognition attendance system using Ionic, Node.js, and Hugging Face APIs for seamless real-time processing.",
-            highlights: [
-                "Built real-time face recognition system with high accuracy",
-                "Integrated with cloud databases for reliable uptime and data management",
-                "Optimized backend architecture for fast response times",
-                "Implemented robust daily attendance processing system"
-            ],
-            technologies: ["Ionic", "Node.js", "Hugging Face", "Cloud Databases"],
-            achievements: "High-performance system"
-        }
-    ];
-
-    const skillGroups = [
-        {
-            category: "Programming Languages",
-            skills: ["C/C++", "Python", "JavaScript", "TypeScript"]
-        },
-        {
-            category: "Web Development",
-            skills: ["HTML5", "CSS", "Tailwind CSS", "React.js", "Express.js", "MongoDB", "Next.js"]
-        },
-        {
-            category: "Data & Cloud",
-            skills: ["SQL", "PostgreSQL", "AWS", "Google Cloud", "Supabase", "Pandas", "NumPy", "scikit-learn", "TensorFlow"]
-        },
-        {
-            category: "Tools & OS",
-            skills: ["Git", "GitHub", "Google Colab", "Windows", "Linux"]
-        }
-    ];
-
-    const totalYearsExperience = 1;
-    const totalProjects = experiences.length;
+const ExperienceCard = ({ exp, index, open, onToggle }) => {
+    const accent = oreColor(exp.ore);
 
     return (
-        <>
-            <section className="relative py-8 sm:py-12 md:py-16 pointer-events-auto">
-                <div className="max-w-[1320px] mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
-                        className="text-center mb-8 sm:mb-10 md:mb-12"
-                    >
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-white">
-                            Experience & Skills
-                        </h2>
-                        <div className="flex justify-center gap-8 text-sm text-gray-200 drop-shadow-sm">
-                            <div className="flex items-center gap-2">
-                                <Calendar className="w-4 h-4 text-[#00f5ff]" />
-                                <span>{totalYearsExperience}+ Years Experience</span>
-                            </div>
-                            <div className="hidden md:flex items-center gap-2 ">
-                                <Star className="w-4 h-4 text-[#00f5ff]" />
-                                <span>{totalProjects} Major Experiences</span>
-                            </div>
-                        </div>
-                    </motion.div>
+        <motion.div
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-60px" }}
+            transition={{ duration: 0.45, delay: index * 0.06 }}
+            className="relative pl-8 sm:pl-12"
+        >
+            {/* Vein running down the left edge, tinted to this role's ore */}
+            <div
+                className="absolute bottom-0 left-[10px] top-8 w-[3px]"
+                style={{ backgroundColor: accent, opacity: 0.22 }}
+            />
+            <div className="absolute left-0 top-5">
+                <OreNode ore={exp.ore} pulse={exp.current} />
+            </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-                        {/* Enhanced Experience Timeline */}
-                        <div className="space-y-6">
-                            <h3 className="text-xl sm:text-2xl font-semibold text-[#00f5ff] mb-4">Work Experience</h3>
-
-                            <div className="space-y-6">
-                                {experiences.map((exp, index) => (
-                                    <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0, x: -30 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                                        className="relative pl-5 sm:pl-6 border-l-2 border-[#00f5ff]/30"
-                                    >
-                                        <motion.div
-                                            className="absolute -left-[8px] sm:-left-[9px] top-0 w-3 h-3 sm:w-4 sm:h-4 bg-[#00f5ff] rounded-full shadow-lg shadow-[#00f5ff]/50 cursor-pointer"
-                                            whileHover={{ scale: 1.2, boxShadow: "0 0 20px rgba(0, 245, 255, 0.7)" }}
-                                            title={`${exp.duration} • ${exp.achievements}`}
-                                        />
-
-                                        <div>
-                                            <div className="flex justify-between items-start mb-1">
-                                                <div className="flex-1">
-                                                    <h4 className="text-lg sm:text-xl font-semibold text-white mb-1">{exp.title}</h4>
-                                                    <div className="flex flex-wrap items-center gap-2 text-sm text-[#00f5ff] mb-2 sm:mb-3">
-                                                        <span className="font-medium">{exp.company}</span>
-                                                        <span>•</span>
-                                                        <span>{exp.period}</span>
-                                                        <span>•</span>
-                                                        <div className="flex items-center gap-1">
-                                                            <MapPin className="w-3 h-3" />
-                                                            <span>{exp.location}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                {exp.link && (
-                                                    <motion.a
-                                                        href={exp.link}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-[#00f5ff] hover:text-white transition-colors"
-                                                        whileHover={{ scale: 1.1 }}
-                                                        whileTap={{ scale: 0.95 }}
-                                                    >
-                                                        <ExternalLink className="w-4 h-4" />
-                                                    </motion.a>
-                                                )}
-                                            </div>
-
-                                            <p className="text-sm sm:text-base text-gray-200 leading-relaxed mb-3 drop-shadow-sm">
-                                                {exp.description}
-                                            </p>
-
-                                            {/* Achievement Badge */}
-                                            <div className="mb-3">
-                                                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-[#00f5ff]/10 text-[#00f5ff] border border-[#00f5ff]/30">
-                                                    🏆 {exp.achievements}
-                                                </span>
-                                            </div>
-
-                                            {/* Technologies Used */}
-                                            <div className="mb-3">
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {exp.technologies.slice(0, 4).map((tech) => (
-                                                        <span
-                                                            key={tech}
-                                                            className="px-2 py-0.5 bg-gray-700/70 text-gray-100 rounded text-xs border border-gray-600/50 drop-shadow-sm"
-                                                        >
-                                                            {tech}
-                                                        </span>
-                                                    ))}
-                                                    {exp.technologies.length > 4 && (
-                                                        <span className="px-2 py-0.5 bg-gray-700/70 text-gray-200 rounded text-xs border border-gray-600/50 drop-shadow-sm">
-                                                            +{exp.technologies.length - 4} more
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Expandable Highlights */}
-                                            <button
-                                                onClick={() => setExpandedExp(expandedExp === index ? null : index)}
-                                                className="flex items-center gap-1 text-[#00f5ff] text-sm hover:text-white transition-colors hover:cursor-pointer"
-                                            >
-                                                <span>Key Highlights</span>
-                                                {expandedExp === index ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                                            </button>
-
-                                            <AnimatePresence>
-                                                {expandedExp === index && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: "auto" }}
-                                                        exit={{ opacity: 0, height: 0 }}
-                                                        className="overflow-hidden"
-                                                    >
-                                                        <ul className="mt-3 space-y-2">
-                                                            {exp.highlights.map((highlight, i) => (
-                                                                <motion.li
-                                                                    key={i}
-                                                                    initial={{ opacity: 0, x: -10 }}
-                                                                    animate={{ opacity: 1, x: 0 }}
-                                                                    transition={{ delay: i * 0.1 }}
-                                                                    className="text-sm text-gray-200 flex items-start gap-2 drop-shadow-sm"
-                                                                >
-                                                                    <span className="text-[#00f5ff] mt-1">•</span>
-                                                                    <span>{highlight}</span>
-                                                                </motion.li>
-                                                            ))}
-                                                        </ul>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
+            <BlockPanel className="p-5 sm:p-6">
+                <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <h3 className="mc-title text-lg text-white sm:text-xl">{exp.title}</h3>
+                            {exp.current && (
+                                <span
+                                    className="mc-bevel-inset font-pixel px-2 py-[2px] text-[9px] uppercase"
+                                    style={{ color: accent, backgroundColor: "rgba(0,0,0,0.4)" }}
+                                >
+                                    Active
+                                </span>
+                            )}
                         </div>
 
-                        {/* Technical Skills Grid */}
-                        <div className="space-y-6 mt-8 lg:mt-0">
-                            <h3 className="text-xl sm:text-2xl font-semibold text-[#00f5ff] mb-4">Technical Skills</h3>
-
-                            <div className="space-y-4">
-                                {skillGroups.map((group, index) => (
-                                    <motion.div
-                                        key={group.category}
-                                        initial={{ opacity: 0, x: 30 }}
-                                        whileInView={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.5, delay: index * 0.1 }}
-                                        className="bg-gray-900/30 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 sm:p-5"
-                                    >
-                                        <h4 className="text-base sm:text-lg font-medium text-white mb-3">{group.category}</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {group.skills.map((skill) => (
-                                                <span
-                                                    key={skill}
-                                                    className="px-2.5 sm:px-3 py-1 sm:py-1.5 bg-[#00f5ff]/10 border border-[#00f5ff]/30 text-[#00f5ff] rounded-lg text-xs sm:text-sm font-medium hover:bg-[#00f5ff]/20 transition-colors"
-                                                >
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm">
+                            <span className="font-pixel" style={{ color: accent }}>
+                                {exp.company}
+                            </span>
+                            <span className="text-gray-400">·</span>
+                            <span className="text-gray-300">{exp.period}</span>
+                            <span className="text-gray-400">·</span>
+                            <span className="flex items-center gap-1 text-gray-400">
+                                <MapPin className="h-3 w-3" />
+                                {exp.location}
+                            </span>
                         </div>
                     </div>
 
-                    {/* View Complete Tech Stack Button */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3, duration: 0.6 }}
-                        className="mt-12 flex flex-col items-center px-4"
-                    >
-                        {/* Top line */}
-                        <div className="w-16 sm:w-20 md:w-24 h-px bg-gradient-to-r from-transparent via-[#00f5ff]/50 to-transparent mb-6"></div>
-
-                        {/* Button */}
-                        <motion.button
-                            className="flex hover:cursor-pointer items-center gap-2 sm:gap-3 
-               px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 
-               bg-gradient-to-r from-[#00f5ff]/5 via-[#00f5ff]/10 to-[#00f5ff]/5 
-               border border-[#00f5ff]/40 text-[#00f5ff] rounded-lg md:rounded-xl 
-               hover:bg-gradient-to-r hover:from-[#00f5ff]/10 hover:via-[#00f5ff]/20 hover:to-[#00f5ff]/10 
-               hover:border-[#00f5ff]/60 transition-all duration-300 
-               font-semibold text-sm sm:text-base md:text-lg 
-               shadow-md md:shadow-lg shadow-[#00f5ff]/10"
-                            whileHover={{ scale: 1.05, boxShadow: "0 10px 40px rgba(0, 245, 255, 0.2)" }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => setIsTechStackModalOpen(true)}
+                    {exp.link && (
+                        <a
+                            href={exp.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="shrink-0 text-gray-400 transition-colors hover:text-white"
+                            aria-label={`Visit ${exp.company}`}
                         >
-                            <Code className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6" />
-                            <span className="whitespace-nowrap">View Complete Tech Stack</span>
-                            <motion.div
-                                className="w-2 h-2 bg-[#00f5ff] rounded-full"
-                                animate={{ scale: [1, 1.2, 1] }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            />
-                        </motion.button>
-
-                        {/* Bottom line */}
-                        <div className="w-16 sm:w-20 md:w-24 h-px bg-gradient-to-r from-transparent via-[#00f5ff]/50 to-transparent my-6"></div>
-
-                        {/* Optional description (only show on md+) */}
-                        {/* <p className="hidden md:block text-sm text-gray-400 text-center mt-3 max-w-md">
-      Discover all {43}+ technologies, frameworks, and tools used across my projects and experiences
-  </p> */}
-                    </motion.div>
-
+                            <ExternalLink className="h-4 w-4" />
+                        </a>
+                    )}
                 </div>
-            </section>
 
-            {/* Tech Stack Modal */}
-            <TechStackModal
-                isOpen={isTechStackModalOpen}
-                onClose={() => setIsTechStackModalOpen(false)}
-            />
-        </>
+                {/* Layer 1: the plain-English hook */}
+                <p className="text-sm leading-relaxed text-gray-200 sm:text-base">{exp.hook}</p>
+
+                {/* Metrics worth seeing without expanding */}
+                {exp.metrics.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                        {exp.metrics.map((m) => (
+                            <MetricChip key={m.label} {...m} ore={exp.ore} />
+                        ))}
+                    </div>
+                )}
+
+                <div className="mt-4 flex flex-wrap gap-1.5">
+                    {exp.technologies.map((t) => (
+                        <TechTag key={t} ore={exp.ore}>
+                            {t}
+                        </TechTag>
+                    ))}
+                </div>
+
+                {/* Layer 2: the resume-accurate detail */}
+                <button
+                    onClick={onToggle}
+                    aria-expanded={open}
+                    className="mc-btn mt-5 flex items-center gap-2 px-3 py-2 text-xs text-white hover:cursor-pointer"
+                >
+                    <span>{open ? "Hide details" : "What I actually built"}</span>
+                    <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <ChevronDown className="h-3.5 w-3.5" />
+                    </motion.span>
+                </button>
+
+                <AnimatePresence initial={false}>
+                    {open && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.28 }}
+                            className="overflow-hidden"
+                        >
+                            <ul className="mt-4 space-y-3 border-t border-white/10 pt-4">
+                                {exp.bullets.map((b, i) => (
+                                    <li key={i} className="flex gap-3 text-sm leading-relaxed text-gray-300">
+                                        <span
+                                            className="mt-[6px] h-2 w-2 shrink-0"
+                                            style={{ backgroundColor: accent }}
+                                        />
+                                        <span>{b}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </BlockPanel>
+        </motion.div>
+    );
+};
+
+const ExperienceSection = () => {
+    // Accordion: only one role's detail is open at a time.
+    const [openId, setOpenId] = useState(null);
+
+    return (
+        <section className="relative py-20 sm:py-28">
+            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                <SectionHeading
+                    ore={sections.experience.ore}
+                    depth={sections.experience.depth}
+                    sub={sections.experience.sub}
+                >
+                    Experience
+                </SectionHeading>
+
+                <div className="space-y-8">
+                    {experience.map((exp, i) => (
+                        <ExperienceCard
+                            key={exp.id}
+                            exp={exp}
+                            index={i}
+                            open={openId === exp.id}
+                            onToggle={() =>
+                                setOpenId((cur) => (cur === exp.id ? null : exp.id))
+                            }
+                        />
+                    ))}
+                </div>
+            </div>
+        </section>
     );
 };
 

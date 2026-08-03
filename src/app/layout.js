@@ -1,7 +1,9 @@
-import DotGrid from "../components/DotGrid/DotGrid";
+import StrataDotGrid from "../components/Strata/StrataDotGrid";
+import StrataBackdrop from "../components/Strata/StrataBackdrop";
 import { Funnel_Display } from "next/font/google";
 import "./globals.css";
-require("@south-paw/typeface-minecraft");
+import { meta as siteMeta } from "../data/site";
+import "@south-paw/typeface-minecraft";
 
 const funnelDisplay = Funnel_Display({
   subsets: ["latin"],
@@ -10,28 +12,34 @@ const funnelDisplay = Funnel_Display({
 });
 
 export const metadata = {
-  title: "Prakhar's Portfolio",
-  description: "Full Stack Developer & AI Enthusiast from IIT Jodhpur",
+  title: siteMeta.title,
+  description: siteMeta.description,
   metadataBase: new URL("https://coprime69.me"),
+  openGraph: {
+    title: "Prakhar Srivastava - AI/ML & Backend Engineer",
+    description:
+      "B.Tech AI & Data Science at IIT Jodhpur. LLM fine-tuning, distributed data platforms and cloud infrastructure.",
+    url: "https://coprime69.me",
+    siteName: "Prakhar Srivastava",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${funnelDisplay.className} bg-[#060010] text-white overflow-x-hidden`}>
-        {/* Global Interactive DotGrid Background */}
-        <div className="fixed inset-0 z-0">
-          <DotGrid
-            dotSize={3.5}
-            gap={15}
-            baseColor="#1a1a2e"
-            activeColor="#00f5ff"
-            proximity={120}
-            shockRadius={250}
-            shockStrength={5}
-            resistance={750}
-            returnDuration={1.5}
-          />
+      {/* Base colour matches StrataBackdrop's first stop so there is no flash
+          before it mounts. Was #060010 - that purple cast fought everything
+          layered on top of it. */}
+      <body className={`${funnelDisplay.className} bg-[#070b14] text-white overflow-x-hidden`}>
+        {/* Background COLOUR shifts with scroll depth. Sits behind the dots. */}
+        <StrataBackdrop />
+
+        {/* Interactive dot grid. Same pattern and interaction throughout; the
+            colours travel with the depth so the dots stay legible against the
+            shifting backdrop instead of sinking into it. */}
+        <div className="fixed inset-0" style={{ zIndex: 1 }}>
+          <StrataDotGrid />
         </div>
 
         {/* Content with higher z-index */}

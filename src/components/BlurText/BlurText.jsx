@@ -27,6 +27,9 @@ const BlurText = ({
   easing = (t) => t,
   onAnimationComplete,
   stepDuration = 0.35,
+  // Rendered element. Defaults to <p>, but the hero headline passes "h1" so
+  // the document actually has a top-level heading.
+  as = "p",
 }) => {
   const elements = animateBy === "words" ? text.split(" ") : text.split("");
   const [inView, setInView] = useState(false);
@@ -44,7 +47,17 @@ const BlurText = ({
       { threshold, rootMargin },
     );
     observer.observe(ref.current);
-    return () => observer.disconnect();
+
+    // Chrome does not deliver IntersectionObserver callbacks to a hidden tab.
+    // Without this the text stays at opacity 0 forever when the page is opened
+    // in a background tab, and because the caller chains off
+    // onAnimationComplete, the rest of the page never mounts either.
+    const failsafe = setTimeout(() => setInView(true), 1200);
+
+    return () => {
+      clearTimeout(failsafe);
+      observer.disconnect();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [threshold, rootMargin]);
 
@@ -77,8 +90,10 @@ const BlurText = ({
     stepCount === 1 ? 0 : i / (stepCount - 1),
   );
 
+  const Tag = as;
+
   return (
-    <p ref={ref} className={`blur-text ${className} flex flex-wrap`}>
+    <Tag ref={ref} className={`blur-text ${className} flex flex-wrap`}>
       {elements.map((segment, index) => {
         const animateKeyframes = buildKeyframes(fromSnapshot, toSnapshots);
 
@@ -105,7 +120,7 @@ const BlurText = ({
           </motion.span>
         );
       })}
-    </p>
+    </Tag>
   );
 };
 

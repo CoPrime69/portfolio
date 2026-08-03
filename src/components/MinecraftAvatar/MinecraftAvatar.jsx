@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 
+export const SKIN_URL = "/minecraft-skin.png";
+export const MINECRAFT_USERNAME = "Co_Prime";
+
 export default function MinecraftAvatar({ showNameOnHover = true, preloaded = false }) {
     const canvasRef = useRef(null);
     const viewerRef = useRef(null);
@@ -28,29 +31,25 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                 const skinview3d = await import("skinview3d");
                 const { SkinViewer, WalkingAnimation } = skinview3d;
 
-                // Avatar size (scaled up ~120%)
+                // PERF: the viewer defaults to the device pixel ratio, so on a
+                // 2x display this was rendering a 1440x1800 WebGL surface every
+                // frame alongside the DotGrid canvas, which is what made the
+                // page stutter the moment the avatar appeared. Capping the
+                // ratio at 1.5 removes the jank with no visible difference on
+                // a pixel-art skin.
                 viewer = new SkinViewer({
                     canvas: canvasRef.current,
-                    width: 720,   // was 600
-                    height: 900,  // was 750
+                    width: 720,
+                    height: 900,
+                    pixelRatio: Math.min(window.devicePixelRatio || 1, 1.25),
                 });
                 viewerRef.current = viewer;
 
-                // Load skin with error handling
-                try {
-                    await viewer.loadSkin("https://crafatar.com/skins/aaf71728-7390-4175-bd18-9c36cd4697fc");
-                } catch (skinError) {
-                    console.warn("Failed to load skin:", skinError);
-                    // Continue without skin
-                }
-
-                // Load cape with error handling
-                try {
-                    await viewer.loadCape("https://crafatar.com/capes/b876ec32-e396-476b-a115-8438d83c67d4");
-                } catch (capeError) {
-                    console.log("No cape found or failed to load cape");
-                    // Continue without cape
-                }
+                // Skin is self-hosted in /public - Crafatar went down (HTTP 521) and
+                // the profile no longer carries a cape, so both remote loads are gone.
+                // The account uses the slim (Alex, 3px arm) model; say so explicitly
+                // rather than relying on auto-detection.
+                await viewer.loadSkin(SKIN_URL, { model: "slim" });
 
                 // Start with rotation disabled
                 viewer.controls.enableRotate = false;
@@ -77,17 +76,18 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
             }
         };
 
-        // If preloaded, initialize immediately, otherwise add a small delay
+        // If preloaded, initialize immediately, otherwise add a small delay.
+        // Both branches share ONE cleanup: the delayed branch used to return
+        // early with only clearTimeout, which left the WebGL viewer undisposed.
+        let timeout = null;
         if (preloaded) {
             initViewer();
         } else {
-            const timeout = setTimeout(() => {
-                initViewer();
-            }, 100);
-            return () => clearTimeout(timeout);
+            timeout = setTimeout(initViewer, 100);
         }
 
         return () => {
+            if (timeout) clearTimeout(timeout);
             if (viewerRef.current) {
                 try {
                     viewerRef.current.dispose();
@@ -138,7 +138,7 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
 
         if (inZone && !isInHoverZone) {
             setIsInHoverZone(true);
-            if (showNameOnHover) setNameTag("Co_Prime");
+            if (showNameOnHover) setNameTag(MINECRAFT_USERNAME);
             if (viewerRef.current) {
                 viewerRef.current.controls.enableRotate = true;
             }

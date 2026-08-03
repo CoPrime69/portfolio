@@ -1,10 +1,32 @@
 import { useEffect, useRef, useCallback, useMemo } from "react";
 import { gsap } from "gsap";
 
+/**
+ * Module-level pointer tracking.
+ *
+ * The cursor used to initialise itself at the centre of the screen, so every
+ * time it mounted it appeared mid-viewport and then snapped to the real
+ * pointer on the next mousemove. Tracking the pointer globally - and from
+ * before this component ever mounts - lets it start in the right place.
+ */
+const pointer = { x: null, y: null };
+
+if (typeof window !== "undefined") {
+  window.addEventListener(
+    "mousemove",
+    (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+    },
+    { passive: true, capture: true },
+  );
+}
+
 const TargetCursor = ({
   targetSelector = ".cursor-target",
   spinDuration = 2,
   hideDefaultCursor = true,
+  active = true,
 }) => {
   const cursorRef = useRef(null);
   const cornersRef = useRef(null);
@@ -24,18 +46,37 @@ const TargetCursor = ({
     gsap.to(cursorRef.current, {
       x,
       y,
-      duration: 0.1,
+      // Slightly longer than the original 0.1 so the follow reads as a glide
+      // rather than a snap, without feeling laggy.
+      duration: 0.22,
       ease: "power3.out",
     });
   }, []);
 
+  // Fade in/out on activation instead of mounting and unmounting outright -
+  // a hard mount made the cursor pop into existence mid-scroll.
   useEffect(() => {
     if (!cursorRef.current) return;
 
-    const originalCursor = document.body.style.cursor;
-    if (hideDefaultCursor) {
-      document.body.style.cursor = "none";
-    }
+    gsap.to(cursorRef.current, {
+      opacity: active ? 1 : 0,
+      duration: 0.35,
+      ease: "power2.out",
+      overwrite: "auto",
+    });
+
+    if (!hideDefaultCursor) return;
+
+    const original = document.body.style.cursor;
+    document.body.style.cursor = active ? "none" : original || "";
+
+    return () => {
+      document.body.style.cursor = original || "";
+    };
+  }, [active, hideDefaultCursor]);
+
+  useEffect(() => {
+    if (!cursorRef.current) return;
 
     const cursor = cursorRef.current;
     cornersRef.current = cursor.querySelectorAll(".target-cursor-corner");
@@ -57,11 +98,13 @@ const TargetCursor = ({
       currentLeaveHandler = null;
     };
 
+    // Start wherever the pointer actually is. Falling back to screen centre
+    // only when the pointer has genuinely never moved on this page.
     gsap.set(cursor, {
       xPercent: -50,
       yPercent: -50,
-      x: window.innerWidth / 2,
-      y: window.innerHeight / 2,
+      x: pointer.x ?? window.innerWidth / 2,
+      y: pointer.y ?? window.innerHeight / 2,
     });
 
     const createSpinTimeline = () => {
@@ -105,8 +148,10 @@ const TargetCursor = ({
 
     //---------------------------------------------------------------
     // This code for onclick animation
+    // NOTE: `mousemove` is registered once above. It used to be added a second
+    // time here, which ran two gsap tweens per pointer move and leaked one
+    // listener on unmount, since cleanup only removes it once.
 
-    window.addEventListener("mousemove", moveHandler);
     const mouseDownHandler = () => {
       if (!dotRef.current) return;
       gsap.to(dotRef.current, { scale: 0.7, duration: 0.3 });
@@ -312,15 +357,17 @@ const TargetCursor = ({
       window.removeEventListener("mousemove", moveHandler);
       window.removeEventListener("mouseover", enterHandler);
       window.removeEventListener("scroll", scrollHandler);
+      window.removeEventListener("mousedown", mouseDownHandler);
+      window.removeEventListener("mouseup", mouseUpHandler);
 
       if (activeTarget) {
         cleanupTarget(activeTarget);
       }
 
+      if (resumeTimeout) clearTimeout(resumeTimeout);
       spinTl.current?.kill();
-      document.body.style.cursor = originalCursor;
     };
-  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor]);
+  }, [targetSelector, spinDuration, moveCursor, constants]);
 
   useEffect(() => {
     if (!cursorRef.current || !spinTl.current) return;
@@ -341,7 +388,7 @@ const TargetCursor = ({
     <div
       ref={cursorRef}
       className="fixed top-0 left-0 w-0 h-0 pointer-events-none z-[9999] mix-blend-difference transform -translate-x-1/2 -translate-y-1/2"
-      style={{ willChange: "transform" }}
+      style={{ willChange: "transform, opacity", opacity: 0 }}
     >
       <div
         ref={dotRef}

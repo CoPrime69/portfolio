@@ -1,59 +1,146 @@
 "use client";
-import { useState, useEffect } from "react";
-import TransparentDock from "../Dock/TransparentDock";
-import { VscHome, VscCode, VscPerson, VscMail, VscFile } from "react-icons/vsc";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+    Home, Briefcase, Pickaxe, Hammer, GraduationCap, Users, FileText, Mail,
+} from "lucide-react";
+import ResumePicker from "./ResumePicker";
 
-const NavigationDock = ({ scrollToSection, refs }) => {
-    const [isMobile, setIsMobile] = useState(false);
+/**
+ * Minecraft hotbar navigation.
+ *
+ * Replaces the macOS-style magnifying dock: slots are fixed-size, the active
+ * section gets the white selection outline the real hotbar uses, and labels
+ * surface above on hover/focus rather than scaling the icons.
+ *
+ * NOTE: this component positions itself. The parent must NOT wrap it in
+ * another `fixed` container - doing so previously nested two fixed elements.
+ */
 
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
+const Hotbar = ({ items, activeId }) => {
+    const [hovered, setHovered] = useState(null);
 
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
+    return (
+        <div className="mc-bevel flex items-end gap-1 bg-black/55 p-1 backdrop-blur-sm">
+            {items.map((item) => {
+                const active = item.id === activeId;
+                const showLabel = hovered === item.id;
+
+                return (
+                    <div key={item.id} className="relative">
+                        <AnimatePresence>
+                            {showLabel && (
+                                <motion.span
+                                    initial={{ opacity: 0, y: 6 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 6 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="font-pixel pointer-events-none absolute bottom-full left-1/2 mb-2 -translate-x-1/2 whitespace-nowrap bg-black/85 px-2 py-1 text-[10px] text-white"
+                                >
+                                    {item.label}
+                                </motion.span>
+                            )}
+                        </AnimatePresence>
+
+                        <button
+                            onClick={item.onClick}
+                            onMouseEnter={() => setHovered(item.id)}
+                            onMouseLeave={() => setHovered(null)}
+                            onFocus={() => setHovered(item.id)}
+                            onBlur={() => setHovered(null)}
+                            aria-label={item.label}
+                            aria-current={active ? "true" : undefined}
+                            className="mc-slot flex h-11 w-11 items-center justify-center text-gray-200 transition-colors hover:cursor-pointer hover:text-white sm:h-12 sm:w-12"
+                            style={
+                                active
+                                    ? {
+                                        boxShadow: "inset 0 0 0 3px rgba(255,255,255,0.95)",
+                                        color: "#fff",
+                                    }
+                                    : undefined
+                            }
+                        >
+                            {item.icon}
+                        </button>
+                    </div>
+                );
+            })}
+        </div>
+    );
+};
+
+const NavigationDock = ({ scrollToSection, refs, currentSection }) => {
+    const [resumeOpen, setResumeOpen] = useState(false);
+    const size = 18;
 
     const items = [
         {
-            icon: <VscHome size={isMobile ? 16 : 18} />,
-            label: "About",
-            onClick: () => scrollToSection(refs.home, "home")
+            id: "home",
+            label: "Home",
+            icon: <Home size={size} />,
+            onClick: () => scrollToSection(refs.home, "home"),
         },
         {
-            icon: <VscPerson size={isMobile ? 16 : 18} />,
+            id: "education",
+            label: "Education",
+            icon: <GraduationCap size={size} />,
+            onClick: () => scrollToSection(refs.education, "education"),
+        },
+        {
+            id: "experience",
             label: "Experience",
-            onClick: () => scrollToSection(refs.experience, "experience")
+            icon: <Briefcase size={size} />,
+            onClick: () => scrollToSection(refs.experience, "experience"),
         },
         {
-            icon: <VscFile size={isMobile ? 16 : 18} />,
-            label: "Resume",
-            onClick: () => window.open("https://drive.google.com/file/d/1DFzRiX0pxmD7pn5MZhb7b9T2Ffi6_gRA/view?usp=sharing", "_blank")
-        },
-        {
-            icon: <VscCode size={isMobile ? 16 : 18} />,
+            id: "projects",
             label: "Projects",
-            onClick: () => scrollToSection(refs.projects, "projects")
+            icon: <Pickaxe size={size} />,
+            onClick: () => scrollToSection(refs.projects, "projects"),
         },
         {
-            icon: <VscMail size={isMobile ? 16 : 18} />,
+            id: "techstack",
+            label: "Tech Stack",
+            icon: <Hammer size={size} />,
+            onClick: () => scrollToSection(refs.techstack, "techstack"),
+        },
+        {
+            id: "leadership",
+            label: "Leadership",
+            icon: <Users size={size} />,
+            onClick: () => scrollToSection(refs.leadership, "leadership"),
+        },
+        {
+            id: "resume",
+            label: "Resume",
+            icon: <FileText size={size} />,
+            onClick: () => setResumeOpen(true),
+        },
+        {
+            id: "contact",
             label: "Contact",
-            onClick: () => scrollToSection(refs.contact, "contact")
-        }
+            icon: <Mail size={size} />,
+            onClick: () => scrollToSection(refs.contact, "contact"),
+        },
     ];
 
     return (
-        <div className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50">
-            <TransparentDock
-                items={items}
-                panelHeight={isMobile ? 56 : 68}
-                baseItemSize={isMobile ? 42 : 50}
-                magnification={isMobile ? 56 : 70}
-                className="hover:cursor-pointer"
-            />
-        </div>
+        <>
+            {/* Owns its own entrance animation so the parent doesn't need a
+                second `fixed` wrapper around it. */}
+            {/* Duration/easing matched to the avatar, depth meter and clock so
+                all four pieces of chrome arrive as one movement. */}
+            <motion.div
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1] }}
+                className="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 sm:bottom-6"
+            >
+                <Hotbar items={items} activeId={currentSection} />
+            </motion.div>
+
+            <ResumePicker isOpen={resumeOpen} onClose={() => setResumeOpen(false)} />
+        </>
     );
 };
 

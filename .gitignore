@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Resume LaTeX sources: these contain a phone number and roll number, and
+# this repo is public. Remove this rule only if you strip those first.
+*.tex
+*.pdf
