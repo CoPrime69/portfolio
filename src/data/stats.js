@@ -19,7 +19,7 @@ const stats = [
     },
     {
         id: "projects",
-        value: `${projects.length}`,
+        value: `${projects.length}` + "+",
         label: "Projects Built",
         detail: "AI/ML, cloud infrastructure and full-stack products",
         ore: "diamond",

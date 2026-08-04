@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useEffect, useCallback, useMemo } from "react";
+import { useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
 
@@ -41,6 +42,13 @@ const DotGrid = ({
   className = "",
   style,
 }) => {
+  // The dots' throw-and-return is GSAP inertia, i.e. inline transforms on
+  // plain objects - the @media (prefers-reduced-motion) block in globals.css
+  // cannot reach it. Guarded here instead. The proximity RECOLOUR stays on:
+  // it is colour, not movement, and it is what makes the grid feel alive
+  // without moving anything.
+  const prefersReducedMotion = useReducedMotion();
+
   const wrapperRef = useRef(null);
   const canvasRef = useRef(null);
   const dotsRef = useRef([]);
@@ -193,6 +201,8 @@ const DotGrid = ({
       pr.x = e.clientX - rect.left;
       pr.y = e.clientY - rect.top;
 
+      if (prefersReducedMotion) return;
+
       for (const dot of dotsRef.current) {
         const dist = Math.hypot(dot.cx - pr.x, dot.cy - pr.y);
         if (speed > speedTrigger && dist < proximity && !dot._inertiaApplied) {
@@ -217,6 +227,7 @@ const DotGrid = ({
     };
 
     const onClick = (e) => {
+      if (prefersReducedMotion) return;
       const rect = canvasRef.current.getBoundingClientRect();
       const cx = e.clientX - rect.left;
       const cy = e.clientY - rect.top;
@@ -260,20 +271,25 @@ const DotGrid = ({
     returnDuration,
     shockRadius,
     shockStrength,
+    prefersReducedMotion,
   ]);
 
   return (
-    <section
+    // Was a <section>, which put a bogus landmark in the accessibility tree
+    // for what is a decorative canvas. The wrapper in layout.js carries the
+    // aria-hidden.
+    <div
       className={`p-4 flex items-center justify-center h-full w-full relative ${className}`}
       style={style}
     >
       <div ref={wrapperRef} className="w-full h-full relative">
         <canvas
           ref={canvasRef}
+          aria-hidden="true"
           className="absolute inset-0 w-full h-full pointer-events-none"
         />
       </div>
-    </section>
+    </div>
   );
 };
 

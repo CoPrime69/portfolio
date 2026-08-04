@@ -1,9 +1,8 @@
 "use client";
-import { motion } from "framer-motion";
 import { FileText, ExternalLink } from "lucide-react";
 import Modal from "../ModalPopUp/Modal";
 import resumeTracks, { resolveResumeUrl, isFallback } from "../../data/resumes";
-import { oreColor } from "../mc";
+import { oreBlock, oreColor } from "../mc";
 
 /**
  * Four resume variants, one per role track.
@@ -19,9 +18,6 @@ const ResumePicker = ({ isOpen, onClose }) => (
         onClose={onClose}
         title="Choose a Resume"
         maxWidth="max-w-2xl"
-        className="!rounded-none mc-panel"
-        headerClassName="border-gray-700"
-        contentClassName="bg-transparent"
     >
         <div className="space-y-4">
             <p className="text-sm text-gray-300">
@@ -30,27 +26,21 @@ const ResumePicker = ({ isOpen, onClose }) => (
             </p>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {resumeTracks.map((track, i) => {
+                {resumeTracks.map((track) => {
                     const accent = oreColor(track.ore);
                     const fallback = isFallback(track);
 
                     return (
-                        <motion.a
+                        <a
                             key={track.id}
                             href={resolveResumeUrl(track)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            initial={{ opacity: 0, y: 14 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.3, delay: i * 0.06 }}
-                            whileHover={{ y: -3 }}
-                            className="mc-slot group flex items-start gap-3 p-4 hover:cursor-pointer"
+                            className="mc-slot mc-lift group flex items-start gap-3 p-4 hover:cursor-pointer"
                         >
                             <div
                                 className="mc-bevel flex h-11 w-11 shrink-0 items-center justify-center"
-                                style={{
-                                    backgroundColor: `color-mix(in srgb, ${accent} 22%, #14141a)`,
-                                }}
+                                style={{ backgroundColor: oreBlock(track.ore, 22) }}
                             >
                                 <FileText className="h-5 w-5" style={{ color: accent }} />
                             </div>
@@ -58,7 +48,7 @@ const ResumePicker = ({ isOpen, onClose }) => (
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
                                     <span
-                                        className="font-pixel text-sm"
+                                        className="font-pixel pixel-sm"
                                         style={{ color: accent }}
                                     >
                                         {track.label}
@@ -71,12 +61,12 @@ const ResumePicker = ({ isOpen, onClose }) => (
                                 </p>
 
                                 {fallback && (
-                                    <p className="mt-2 text-[10px] uppercase tracking-wide text-gray-400">
+                                    <p className="mc-eyebrow mt-2 text-gray-400">
                                         opens general resume
                                     </p>
                                 )}
                             </div>
-                        </motion.a>
+                        </a>
                     );
                 })}
             </div>

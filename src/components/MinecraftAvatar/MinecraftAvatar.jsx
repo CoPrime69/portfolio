@@ -9,7 +9,6 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
     const containerRef = useRef(null);
     const [isReady, setIsReady] = useState(false);
     const [error, setError] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [isInHoverZone, setIsInHoverZone] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -26,8 +25,6 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
             if (!canvasRef.current) return;
 
             try {
-                setIsLoading(true);
-
                 const skinview3d = await import("skinview3d");
                 const { SkinViewer, WalkingAnimation } = skinview3d;
 
@@ -65,14 +62,12 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                 viewer.camera.position.z = 80;
                 viewer.nameTag = "";
 
-                setIsLoading(false);
                 setIsReady(true);
                 setError(null);
             } catch (err) {
                 console.error("Failed to initialize avatar:", err);
                 setError(err.message);
                 setIsReady(false);
-                setIsLoading(false);
             }
         };
 
@@ -183,15 +178,11 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
         >
-            {/* Loading indicator */}
-            {/* {isLoading && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                </div>
-            )} */}
-
+            {/* The skin is decorative; the name is already in the page copy.
+                Announcing a WebGL canvas with no accessible name is noise. */}
             <canvas
                 ref={canvasRef}
+                aria-hidden="true"
                 className={
                     isReady
                         ? "opacity-100 transition-opacity duration-500"
@@ -208,26 +199,13 @@ export default function MinecraftAvatar({ showNameOnHover = true, preloaded = fa
                 onMouseDown={handleMouseDown}
             />
 
-            {/* Visual feedback for hover zone (optional - shows the active area) */}
-            {isReady && (isInHoverZone || isDragging) && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        width: 200,
-                        height: 700,
-                        // border: `2px dashed rgba(255, 255, 255, ${isDragging ? 0.2 : 0.1})`,
-                        borderRadius: "8px",
-                        pointerEvents: "none",
-                        zIndex: 15,
-                    }}
-                />
-            )}
+            {/* NOTE: an empty, borderRadius-ed hover-zone marker used to render
+                here while the pointer was inside the zone. Its only visible
+                property was commented out, so it painted nothing and existed
+                only to carry an 8px radius into a system that has none. */}
 
             {error && (
-                <div className="absolute bottom-2 left-2 text-xs text-white bg-black/50 px-2 py-1 rounded">
+                <div className="mc-bevel-inset absolute bottom-2 left-2 bg-black/60 px-2 py-1 text-xs text-white">
                     Offline Mode
                 </div>
             )}

@@ -1,5 +1,7 @@
 "use client";
-import { motion } from "framer-motion";
+// Re-exporting a binding does not bring it into this module's scope, and
+// SectionHeading below uses it directly.
+import { Reveal } from "./reveal";
 
 /**
  * Shared Minecraft UI primitives. Everything below composes the bevel/panel
@@ -14,39 +16,136 @@ export const ORE = {
     gold: "var(--ore-gold)",
     redstone: "var(--ore-redstone)",
     copper: "var(--ore-copper)",
-    amethyst: "var(--ore-amethyst)",
     iron: "var(--ore-iron)",
 };
 
 export const oreColor = (name) => ORE[name] ?? ORE.diamond;
 
+/**
+ * The order ores are handed out in when a list needs distinct colours.
+ *
+ * Deliberately alternating cool and warm rather than alphabetical, so
+ * neighbours in a list never sit next to a near-neighbour in hue:
+ *   cyan -> yellow -> blue -> orange -> green -> red -> grey
+ */
+export const ORE_CYCLE = [
+    "diamond",
+    "gold",
+    "lapis",
+    "copper",
+    "emerald",
+    "redstone",
+    "iron",
+];
+
+/**
+ * Give every item in a list its own colour.
+ *
+ * NO TWO ITEMS IN A SECTION SHOULD SHARE AN ORE. Hand-setting `ore` per record
+ * does not hold that line - `federated-learning` and `candidate-eval` were both
+ * lapis, and the chest had four separate collisions - and it silently breaks
+ * again every time a project is added. So uniqueness is computed here rather
+ * than remembered in the data.
+ *
+ * An item's own `ore` is honoured when it is still free; otherwise it gets the
+ * next unclaimed ore from ORE_CYCLE. That means the values in src/data stay
+ * meaningful as a preference, and adding a project can never produce a
+ * duplicate - it just takes the next free colour.
+ *
+ * There are only seven ores, so a list longer than seven must repeat. When it
+ * wraps, the ore immediately preceding is held back, so a repeat can never land
+ * next to its twin.
+ *
+ * @param items  the records being rendered
+ * @param get    how to read an item's preferred ore (default: `item.ore`)
+ * @returns      an array of ore names, index-aligned with `items`
+ */
+export const distinctOres = (items, get = (item) => item?.ore) => {
+    const out = [];
+    let claimed = new Set();
+    let cursor = 0;
+
+    const nextFree = (blocked) => {
+        for (let n = 0; n < ORE_CYCLE.length; n++) {
+            const candidate = ORE_CYCLE[(cursor + n) % ORE_CYCLE.length];
+            if (!claimed.has(candidate) && candidate !== blocked) {
+                cursor = (cursor + n + 1) % ORE_CYCLE.length;
+                return candidate;
+            }
+        }
+        return null;
+    };
+
+    for (const item of items) {
+        const previous = out[out.length - 1];
+        const preferred = get(item);
+
+        let pick =
+            preferred && preferred in ORE && !claimed.has(preferred)
+                ? preferred
+                : nextFree(previous);
+
+        // Every ore is spoken for: start a fresh round, holding back the one
+        // we just used so the wrap is not visible as a repeated pair.
+        if (!pick) {
+            claimed = new Set(previous ? [previous] : []);
+            pick = nextFree(previous) ?? ORE_CYCLE[0];
+        }
+
+        claimed.add(pick);
+        out.push(pick);
+    }
+
+    return out;
+};
+
+/**
+ * A block tinted with an ore, mixed into the shared surface base.
+ * Was written out longhand with a hardcoded #14141a in five separate files.
+ */
+export const oreBlock = (name, amount = 22) =>
+    `color-mix(in srgb, ${oreColor(name)} ${amount}%, var(--mc-surface-base))`;
+
+/* ---------------------------------------------------------------- motion */
+
+/**
+ * The house reveal lives in ./reveal.jsx - it is geometry-driven rather than
+ * IntersectionObserver-driven, for reasons worth reading before changing it.
+ * Re-exported here so sections keep importing everything from "../mc".
+ */
+export { Reveal, useReveal, stepped, REVEAL_TRIGGER } from "./reveal";
+
 /* -------------------------------------------------------------- headings */
 
+/**
+ * A section's ore owns the whole heading block: the depth eyebrow, the rule
+ * beneath the title, and (via `ore`) every accent the section hands down to
+ * its cards. Previously the eyebrow and rule took the section ore while the
+ * cards each picked their own, so the accent read as variety rather than as
+ * "this is how deep you are".
+ */
 export const SectionHeading = ({ children, ore = "diamond", sub, depth }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-80px" }}
-        transition={{ duration: 0.5 }}
-        className="mb-10 text-center"
-    >
+    <Reveal className="mb-12 text-center">
         {depth && (
             <span
-                className="font-pixel mb-3 inline-block text-[10px] uppercase tracking-[0.3em]"
-                style={{ color: oreColor(ore), opacity: 0.75 }}
+                className="mc-eyebrow mb-3 inline-block"
+                style={{ color: oreColor(ore) }}
             >
                 {depth}
             </span>
         )}
-        <h2 className="mc-title text-2xl text-white sm:text-3xl md:text-4xl">{children}</h2>
+        <h2 className="mc-title font-pixel pixel-lg text-white sm:pixel-xl">{children}</h2>
         {sub && (
-            <p className="mx-auto mt-4 max-w-2xl text-sm text-gray-300 sm:text-base">{sub}</p>
+            <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-gray-300 sm:text-base">
+                {sub}
+            </p>
         )}
+        {/* One block wide, so the rule is literally a block. */}
         <div
-            className="mx-auto mt-5 h-[3px] w-24"
-            style={{ backgroundColor: oreColor(ore), opacity: 0.6 }}
+            className="mx-auto mt-6 h-[3px] w-[var(--mc-block)]"
+            style={{ backgroundColor: oreColor(ore) }}
         />
-    </motion.div>
+    </Reveal>
 );
 
 /* ---------------------------------------------------------------- panels */
@@ -65,10 +164,13 @@ export const BlockPanel = ({ children, className = "", ore, glow = false, ...res
 
 export const MetricChip = ({ value, label, ore = "diamond" }) => (
     <div className="mc-bevel-inset flex flex-col items-center bg-black/40 px-3 py-2">
-        <span className="font-pixel text-sm leading-none" style={{ color: oreColor(ore) }}>
+        <span
+            className="font-pixel pixel-sm leading-none"
+            style={{ color: oreColor(ore) }}
+        >
             {value}
         </span>
-        <span className="mt-1 text-[10px] uppercase tracking-wide text-gray-400">{label}</span>
+        <span className="mc-eyebrow mt-1.5 text-gray-400">{label}</span>
     </div>
 );
 
@@ -76,6 +178,20 @@ export const TechTag = ({ children, ore = "diamond" }) => (
     <span
         className="mc-bevel-inset px-2 py-1 text-[11px] text-gray-200"
         style={{ backgroundColor: `color-mix(in srgb, ${oreColor(ore)} 12%, transparent)` }}
+    >
+        {children}
+    </span>
+);
+
+/**
+ * The small uppercase state badge ("Current", "Active").
+ * Funnel Display rather than the pixel face: at 11px the Minecraft glyphs stop
+ * resolving, and this is the size that made the point loudest.
+ */
+export const StateBadge = ({ children, ore = "diamond" }) => (
+    <span
+        className="mc-bevel-inset mc-eyebrow px-2 py-[3px]"
+        style={{ color: oreColor(ore), backgroundColor: "rgba(0,0,0,0.4)" }}
     >
         {children}
     </span>
@@ -90,16 +206,9 @@ export const TechTag = ({ children, ore = "diamond" }) => (
 export const BlockTile = ({ short, ore = "diamond", size = 56 }) => (
     <div
         className="mc-bevel flex items-center justify-center"
-        style={{
-            width: size,
-            height: size,
-            backgroundColor: `color-mix(in srgb, ${oreColor(ore)} 18%, #14141a)`,
-        }}
+        style={{ width: size, height: size, backgroundColor: oreBlock(ore, 18) }}
     >
-        <span
-            className="font-pixel text-sm"
-            style={{ color: oreColor(ore) }}
-        >
+        <span className="font-pixel pixel-sm" style={{ color: oreColor(ore) }}>
             {short}
         </span>
     </div>
@@ -118,3 +227,38 @@ export const OreNode = ({ ore = "diamond", size = 22, pulse = true }) => (
         }}
     />
 );
+
+/**
+ * The seam an ore node sits in.
+ *
+ * This was a 25%-opacity hairline, which measured as invisible against every
+ * stratum - so the nodes read as floating squares rather than as ore embedded
+ * in a vein. It is the load-bearing element of the whole Projects metaphor, so
+ * it is now actually visible.
+ *
+ * `ore` takes either a single token or an array. An array runs the gradient
+ * through each ore in turn, so a seam that passes several veins is tinted by
+ * all of them - which is what the original diamond -> copper -> emerald
+ * gradient was doing, just too faintly to see.
+ */
+export const OreSeam = ({ ore = "diamond", className = "" }) => {
+    const stops = Array.isArray(ore) ? ore : [ore];
+    const ramp = stops
+        .map((o, i) => {
+            // Leave the first and last 10% to fade out, so the seam does not
+            // end in a hard stub.
+            const pct = 10 + (80 * i) / Math.max(stops.length - 1, 1);
+            return `${oreColor(o)} ${pct.toFixed(1)}%`;
+        })
+        .join(", ");
+
+    return (
+        <div
+            className={`absolute w-[3px] ${className}`}
+            style={{
+                background: `linear-gradient(to bottom, transparent, ${ramp}, transparent)`,
+                opacity: 0.55,
+            }}
+        />
+    );
+};

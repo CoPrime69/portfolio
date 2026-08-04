@@ -14,53 +14,82 @@
 
 :root {
   /* Neutral dark blue-black. Deliberately NOT purple - the previous #060010
-     cast a violet tint over every surface layered on top of it. */
+     cast a violet tint over every surface layered on top of it.
+     Matches strata.js's first stop (Sky) so there is no flash before the
+     backdrop mounts. */
   --background: #070b14;
   --foreground: #ffffff;
 
-  /* --- Strata: the vertical journey, sky down to bedrock -----------------
-     These mirror the stops in StrataBackdrop.jsx; keep the two in sync. */
-  --strata-sky: #070b14;        /* hero - night sky */
-  --strata-grass: #0a1710;      /* surface / experience */
-  --strata-dirt: #150f09;       /* topsoil transition */
-  --strata-stone: #131519;      /* projects - ore-bearing rock */
-  --strata-deepslate: #0d0f12;  /* skills - deep rock */
-  --strata-bedrock: #0a0a0c;    /* contact - the floor of the world */
+  /* --- Strata ------------------------------------------------------------
+     There is deliberately NO --strata-* token here.
 
-  /* --- Ore accents: one per section, semantic not decorative -------------- */
+     The descent palette used to exist twice: once as CSS custom properties in
+     this file and once as hex literals in src/data/strata.js. Nothing ever
+     read the CSS copies - StrataBackdrop and StrataDotGrid both import from
+     strata.js - so they were a silent drift risk with no upside. strata.js is
+     the single source of truth it always claimed to be; if you need a stratum
+     colour in JS, import strataColorAt() from there. */
+
+  /* --- Ore accents: one per section, semantic not decorative --------------
+     Every value below is verified >= 5.17:1 against every stratum, on the raw
+     backdrop and on .mc-panel. Do not darken one without re-measuring. */
   --ore-diamond: #4aedd9;   /* projects   */
   --ore-emerald: #17dd62;   /* experience */
   --ore-lapis: #7c9bff;     /* education. Was #4a6dd9, only 4.16:1 on panels (below AA). */
-  --ore-gold: #fcee4b;      /* leadership */
+  --ore-gold: #fcee4b;      /* leadership + the focus ring */
   --ore-redstone: #ff3b3b;  /* alerts     */
-  --ore-copper: #e77c56;    /* courses    */
+  --ore-copper: #e77c56;    /* tech stack */
   --ore-iron: #b6bcc8;      /* neutral    */
-  --ore-amethyst: #b57cff;  /* retained for compatibility; unused - purple was pulled from the palette */
+  /* NOTE: --ore-amethyst was removed. Purple was pulled from the palette
+     deliberately; the token outlived it and data/README.md was still
+     advertising it as a valid `ore` value, which made it a trap. */
 
-  /* Legacy accent kept so the existing hero/cyan identity survives */
+  /* The cyan the hero identity is built on. Also the Sky stratum's active dot
+     colour - that copy lives in strata.js because JS cannot read a CSS var. */
   --accent-cyan: #00f5ff;
-  --accent-pink: #ff006e;
 
-  /* --- Minecraft GUI panel ramp ------------------------------------------ */
-  --gui-light: #c6c6c6;
-  --gui-mid: #8b8b8b;
-  --gui-dark: #373737;
-  --gui-darkest: #1d1d1d;
+  /* The base a tinted block mixes into. Was hardcoded as #14141a in five
+     separate components. */
+  --mc-surface-base: #14141a;
 
   /* One on-screen block. Everything blocky snaps to this grid. */
   --mc-block: 64px;
+
+  /* Vertical rhythm, expressed in blocks so the grid is real rather than
+     aspirational. Sections were an off-grid 80/112px. */
+  --mc-section-y: calc(var(--mc-block) * 1.5);   /*  96px mobile  */
+  --mc-section-y-lg: calc(var(--mc-block) * 2);  /* 128px desktop */
+
+  /* The hotbar is fixed over the bottom of the page. Every section owes it
+     this much clearance, or its last row ends up underneath the chrome.
+     Previously only TechStackSection defended against this, with a one-off
+     pb-16. */
+  --dock-clearance: 104px;
+
+  /* --- Pixel type scale ---------------------------------------------------
+     The Minecraft face was being rendered at nine different sizes (9, 10, 12,
+     14, 16, 18, 20, 24, 36px) picked ad hoc from Tailwind's scale. It is a
+     display face on a fixed pixel grid; it deserves a fixed, stepped scale.
+
+     11px is the floor. Below that the letterforms stop resolving and the drop
+     shadow is a third of the cap height - that is decoration, not text, and
+     Funnel Display should take over. */
+  --pixel-xs: 11px;   /* eyebrows, badges, depth labels */
+  --pixel-sm: 13px;   /* metric values, inline labels   */
+  --pixel-md: 16px;   /* card titles                    */
+  --pixel-lg: 22px;   /* stat numbers, scores           */
+  --pixel-xl: 34px;   /* section titles                 */
+
+  /* The hard shadow is Minecraft's signature, but a flat 3px from 34px down
+     to 11px swamps the small sizes. It scales with the text now. */
+  --pixel-shadow-sm: 1px 1px 0 rgba(0, 0, 0, 0.85);
+  --pixel-shadow-md: 2px 2px 0 rgba(0, 0, 0, 0.85);
+  --pixel-shadow-lg: 3px 3px 0 rgba(0, 0, 0, 0.85);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-
-  --color-strata-sky: var(--strata-sky);
-  --color-strata-grass: var(--strata-grass);
-  --color-strata-dirt: var(--strata-dirt);
-  --color-strata-stone: var(--strata-stone);
-  --color-strata-deepslate: var(--strata-deepslate);
-  --color-strata-bedrock: var(--strata-bedrock);
 
   --color-ore-diamond: var(--ore-diamond);
   --color-ore-emerald: var(--ore-emerald);
@@ -68,11 +97,9 @@
   --color-ore-gold: var(--ore-gold);
   --color-ore-redstone: var(--ore-redstone);
   --color-ore-copper: var(--ore-copper);
-  --color-ore-amethyst: var(--ore-amethyst);
   --color-ore-iron: var(--ore-iron);
 
   --color-accent-cyan: var(--accent-cyan);
-  --color-accent-pink: var(--accent-pink);
 
   --font-pixel: "Minecraft", ui-monospace, "Courier New", monospace;
 }
@@ -100,12 +127,128 @@ canvas {
   font-family: "Minecraft", ui-monospace, "Courier New", monospace;
   font-weight: 400;
   letter-spacing: 0.02em;
-  /* Minecraft's signature hard drop shadow, offset by one "pixel" */
-  text-shadow: 3px 3px 0 rgba(0, 0, 0, 0.85);
+  /* Minecraft's signature hard drop shadow, offset by one "pixel".
+     The medium step is the default; .pixel-* below override it to match
+     their own size. */
+  text-shadow: var(--pixel-shadow-md);
 }
 
 .mc-title {
   line-height: 1.25;
+}
+
+/* --- The pixel scale ------------------------------------------------------
+   Five steps, each pairing a size with the shadow weight that suits it.
+   Use these instead of Tailwind text-* on anything wearing .font-pixel, so
+   the face can never drift back to nine ad-hoc sizes.
+
+   Declared with @utility rather than as plain classes so Tailwind variants
+   work on them - `sm:pixel-xl` is a real thing the section headings need. */
+
+@utility pixel-xs {
+  font-size: var(--pixel-xs);
+  line-height: 1.4;
+  text-shadow: var(--pixel-shadow-sm);
+}
+
+@utility pixel-sm {
+  font-size: var(--pixel-sm);
+  line-height: 1.35;
+  text-shadow: var(--pixel-shadow-sm);
+}
+
+@utility pixel-md {
+  font-size: var(--pixel-md);
+  line-height: 1.3;
+  text-shadow: var(--pixel-shadow-md);
+}
+
+@utility pixel-lg {
+  font-size: var(--pixel-lg);
+  line-height: 1.15;
+  text-shadow: var(--pixel-shadow-md);
+}
+
+@utility pixel-xl {
+  font-size: var(--pixel-xl);
+  line-height: 1.2;
+  text-shadow: var(--pixel-shadow-lg);
+}
+
+/* Eyebrow labels (section depth readouts, category kickers, badge text).
+   Deliberately NOT the pixel face: at this size the Minecraft glyphs stop
+   resolving and the tracking makes it worse. Funnel Display in caps carries
+   the same "small structural label" role and stays readable. */
+@utility mc-eyebrow {
+  font-size: var(--pixel-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   SECTION RHYTHM
+   --------------------------------------------------------------------------
+   Every content section owes the same vertical measure, expressed in blocks,
+   and the same clearance for the fixed hotbar at the bottom of the page.
+   ========================================================================== */
+
+.mc-section {
+  position: relative;
+  padding-top: var(--mc-section-y);
+  padding-bottom: var(--mc-section-y);
+}
+
+@media (min-width: 640px) {
+  .mc-section {
+    padding-top: var(--mc-section-y-lg);
+    padding-bottom: var(--mc-section-y-lg);
+  }
+}
+
+/* The last section before the page ends, and any section whose final row
+   would otherwise come to rest underneath the hotbar. */
+.mc-section-dock {
+  padding-bottom: calc(var(--mc-section-y) + var(--dock-clearance));
+}
+
+@media (min-width: 640px) {
+  .mc-section-dock {
+    padding-bottom: calc(var(--mc-section-y-lg) + var(--dock-clearance));
+  }
+}
+
+/* One measure for every section's content column. Was max-w-3xl / 4xl / 5xl /
+   1440px across six sections with no rule behind the choice. */
+.mc-container {
+  margin-inline: auto;
+  width: 100%;
+  max-width: calc(var(--mc-block) * 14); /* 896px */
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .mc-container {
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mc-container {
+    padding-inline: 2rem;
+  }
+}
+
+/* Sections that genuinely need the extra width: the Projects seam runs down
+   the middle of a two-column grid and needs room on both sides of it. */
+.mc-container-wide {
+  max-width: calc(var(--mc-block) * 17); /* 1088px */
+}
+
+/* Sections that read better narrow: single-column prose. */
+.mc-container-narrow {
+  max-width: calc(var(--mc-block) * 11); /* 704px */
 }
 
 /* Minecraft nametag styling using the proper font */
@@ -196,8 +339,10 @@ canvas {
   border-color: rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.6) rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.3);
   background-color: rgba(107, 107, 107, 0.5);
   font-family: "Minecraft", ui-monospace, monospace;
-  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.75);
-  transition: background-color 120ms steps(2), border-color 120ms steps(2);
+  text-shadow: var(--pixel-shadow-md);
+  transition:
+    background-color 120ms var(--mc-ease-state),
+    border-color 120ms var(--mc-ease-state);
 }
 
 .mc-btn:hover {
@@ -209,6 +354,18 @@ canvas {
   border-color: rgba(0, 0, 0, 0.6) rgba(255, 255, 255, 0.3) rgba(255, 255, 255, 0.3) rgba(0, 0, 0, 0.6);
 }
 
+/* Hover lift for cards and slots.
+   Was a `transition-transform duration-200` glide, i.e. sub-pixel travel - the
+   one thing this system says it does not do. It steps now: the card is either
+   down or up, with a single intermediate frame. */
+.mc-lift {
+  transition: transform 120ms var(--mc-ease-state);
+}
+
+.mc-lift:hover {
+  transform: translateY(-4px);
+}
+
 /* Keyboard focus has to survive the border-swapping above.
    The bare `button` selector is the fallback: controls that aren't .mc-btn or
    .mc-slot (the modal close button, the inline "How it works" toggles) would
@@ -216,9 +373,28 @@ canvas {
 .mc-btn:focus-visible,
 .mc-slot:focus-visible,
 button:focus-visible,
-a:focus-visible {
+a:focus-visible,
+[tabindex]:focus-visible {
   outline: 3px solid var(--ore-gold);
   outline-offset: 2px;
+}
+
+/* Skip link. Off-screen until focused, then lands as a normal GUI button.
+   The page is one long scroll behind a fixed hotbar, so a keyboard user
+   otherwise has to tab the whole way down to reach the content. */
+.mc-skip-link {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  z-index: 100;
+  transform: translate(-50%, -120%);
+  padding: 0.75rem 1.25rem;
+  font-size: var(--pixel-sm);
+  color: #fff;
+}
+
+.mc-skip-link:focus-visible {
+  transform: translate(-50%, 0.5rem);
 }
 
 /* ==========================================================================
@@ -244,6 +420,40 @@ a:focus-visible {
 
 .mc-ore-pulse {
   animation: mc-ore-pulse 2.8s steps(8, end) infinite;
+}
+
+/* ==========================================================================
+   SCROLLBARS INSIDE GUI PANELS
+   --------------------------------------------------------------------------
+   Was a styled-jsx block in Modal.jsx with `border-radius: 3px` on the track
+   and thumb, a hardcoded #00f5ff, and a #00ff88 hover that is not in the
+   palette at all. Square, tokenised, and in the stylesheet where the rest of
+   the design system lives.
+   ========================================================================== */
+
+.mc-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-cyan) rgba(0, 0, 0, 0.5);
+  -webkit-overflow-scrolling: touch;
+}
+
+.mc-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.mc-scroll::-webkit-scrollbar-track {
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.mc-scroll::-webkit-scrollbar-thumb {
+  border-radius: 0;
+  background: var(--accent-cyan);
+  border: 2px solid rgba(0, 0, 0, 0.5);
+}
+
+.mc-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ore-diamond);
 }
 
 /* ==========================================================================
@@ -290,6 +500,44 @@ a:focus-visible {
 /* ==========================================================================
    MOTION
    Everything steps rather than eases - Minecraft has no sub-pixel motion.
+   --------------------------------------------------------------------------
+   THE STEPPED IDIOM, IN ONE PLACE.
+
+   This used to be true of exactly two rules (.mc-btn and .mc-ore-pulse) while
+   every section reveal, the hero chain, the rotating pill and the accordions
+   eased or sprang. The house easing now lives here as a token so JS-driven
+   motion can use the same curve - framer-motion accepts a CSS easing string,
+   so `ease: "steps(...)"` is not available to it, but the equivalent stepped
+   feel is achieved with the discrete keyframe counts in mcSteps() (see
+   src/components/mc/index.jsx).
+   ========================================================================== */
+
+:root {
+  /* Two ticks is the shortest step that still reads as stepped rather than
+     instant. Used for state changes (hover, press). */
+  --mc-ease-state: steps(2, end);
+  /* Six ticks over a longer travel: enough to feel like discrete frames
+     without reading as dropped ones. Used for reveals. */
+  --mc-ease-reveal: steps(6, end);
+}
+
+/* ==========================================================================
+   REDUCED MOTION
+   --------------------------------------------------------------------------
+   IMPORTANT: the block below only reaches CSS animations and transitions. It
+   CANNOT reach framer-motion (which writes inline transforms), GSAP (DotGrid's
+   inertia, TargetCursor's spin), setInterval-driven motion (the rotating hero
+   pill) or setTimeout-driven sequencing (the hero intro chain).
+
+   Those are handled in JS instead:
+     - layout.js wraps the tree in <MotionConfig reducedMotion="user">, which
+       makes every framer-motion transform/layout animation a no-op.
+     - DotGrid and TargetCursor check useReducedMotion() before registering
+       their GSAP tweens.
+     - HeroSection collapses its entire stage chain to a single tick.
+
+   If you add motion, decide which of those two worlds it lives in and cover
+   it there. Adding it here is not enough.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {

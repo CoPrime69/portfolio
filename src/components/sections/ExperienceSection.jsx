@@ -4,7 +4,18 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ExternalLink, MapPin } from "lucide-react";
 import experience from "../../data/experience";
 import { sections } from "../../data/site";
-import { SectionHeading, BlockPanel, MetricChip, TechTag, OreNode, oreColor } from "../mc";
+import {
+    SectionHeading,
+    BlockPanel,
+    MetricChip,
+    TechTag,
+    OreNode,
+    OreSeam,
+    StateBadge,
+    Reveal,
+    distinctOres,
+    oreColor,
+} from "../mc";
 
 /**
  * The surface stratum. Roles descend in reverse-chronological order, so
@@ -12,45 +23,33 @@ import { SectionHeading, BlockPanel, MetricChip, TechTag, OreNode, oreColor } fr
  *
  * Copy is two-layer: the `hook` always reads, the resume-accurate `bullets`
  * expand on demand.
+ *
+ * Each role carries its own ore, so the vein beside it, its metric chips and
+ * its tech tags all read as one find. The section heading keeps the stratum's
+ * emerald.
  */
 
-const ExperienceCard = ({ exp, index, open, onToggle }) => {
-    const accent = oreColor(exp.ore);
+const ExperienceCard = ({ exp, index, open, onToggle, ore }) => {
+    const accent = oreColor(ore);
 
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.45, delay: index * 0.06 }}
-            className="relative pl-8 sm:pl-12"
-        >
-            {/* Vein running down the left edge, tinted to this role's ore */}
-            <div
-                className="absolute bottom-0 left-[10px] top-8 w-[3px]"
-                style={{ backgroundColor: accent, opacity: 0.22 }}
-            />
+        <Reveal index={index} className="relative pl-8 sm:pl-12">
+            {/* Vein running down the left edge, tinted to the stratum's ore */}
+            <OreSeam ore={ore} className="bottom-0 left-[10px] top-8" />
             <div className="absolute left-0 top-5">
-                <OreNode ore={exp.ore} pulse={exp.current} />
+                <OreNode ore={ore} pulse={exp.current} />
             </div>
 
             <BlockPanel className="p-5 sm:p-6">
                 <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="mc-title text-lg text-white sm:text-xl">{exp.title}</h3>
-                            {exp.current && (
-                                <span
-                                    className="mc-bevel-inset font-pixel px-2 py-[2px] text-[9px] uppercase"
-                                    style={{ color: accent, backgroundColor: "rgba(0,0,0,0.4)" }}
-                                >
-                                    Active
-                                </span>
-                            )}
+                            <h3 className="mc-title font-pixel pixel-md text-white">{exp.title}</h3>
+                            {exp.current && <StateBadge ore={ore}>Active</StateBadge>}
                         </div>
 
                         <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm">
-                            <span className="font-pixel" style={{ color: accent }}>
+                            <span className="font-pixel pixel-sm" style={{ color: accent }}>
                                 {exp.company}
                             </span>
                             <span className="text-gray-400">·</span>
@@ -64,11 +63,13 @@ const ExperienceCard = ({ exp, index, open, onToggle }) => {
                     </div>
 
                     {exp.link && (
+                        // Was a bare 16x16 icon, below WCAG 2.2 SC 2.5.8's 24x24
+                        // minimum target. It is a proper inventory slot now.
                         <a
                             href={exp.link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="shrink-0 text-gray-400 transition-colors hover:text-white"
+                            className="mc-slot flex h-8 w-8 shrink-0 items-center justify-center text-gray-300 transition-colors hover:text-white"
                             aria-label={`Visit ${exp.company}`}
                         >
                             <ExternalLink className="h-4 w-4" />
@@ -83,14 +84,14 @@ const ExperienceCard = ({ exp, index, open, onToggle }) => {
                 {exp.metrics.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                         {exp.metrics.map((m) => (
-                            <MetricChip key={m.label} {...m} ore={exp.ore} />
+                            <MetricChip key={m.label} {...m} ore={ore} />
                         ))}
                     </div>
                 )}
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
                     {exp.technologies.map((t) => (
-                        <TechTag key={t} ore={exp.ore}>
+                        <TechTag key={t} ore={ore}>
                             {t}
                         </TechTag>
                     ))}
@@ -100,12 +101,13 @@ const ExperienceCard = ({ exp, index, open, onToggle }) => {
                 <button
                     onClick={onToggle}
                     aria-expanded={open}
-                    className="mc-btn mt-5 flex items-center gap-2 px-3 py-2 text-xs text-white hover:cursor-pointer"
+                    className="mc-btn pixel-sm mt-5 flex items-center gap-2 px-3 py-2 text-white hover:cursor-pointer"
                 >
                     <span>{open ? "Hide details" : "What I actually built"}</span>
-                    <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2 }}>
-                        <ChevronDown className="h-3.5 w-3.5" />
-                    </motion.span>
+                    <ChevronDown
+                        className={`h-3.5 w-3.5 transition-transform duration-150 ${open ? "rotate-180" : ""
+                            }`}
+                    />
                 </button>
 
                 <AnimatePresence initial={false}>
@@ -114,7 +116,7 @@ const ExperienceCard = ({ exp, index, open, onToggle }) => {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            transition={{ duration: 0.28 }}
+                            transition={{ duration: 0.26 }}
                             className="overflow-hidden"
                         >
                             <ul className="mt-4 space-y-3 border-t border-white/10 pt-4">
@@ -132,17 +134,19 @@ const ExperienceCard = ({ exp, index, open, onToggle }) => {
                     )}
                 </AnimatePresence>
             </BlockPanel>
-        </motion.div>
+        </Reveal>
     );
 };
 
 const ExperienceSection = () => {
     // Accordion: only one role's detail is open at a time.
     const [openId, setOpenId] = useState(null);
+    // One colour per role, guaranteed distinct - see distinctOres().
+    const ores = distinctOres(experience);
 
     return (
-        <section className="relative py-20 sm:py-28">
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+        <section className="mc-section">
+            <div className="mc-container">
                 <SectionHeading
                     ore={sections.experience.ore}
                     depth={sections.experience.depth}
@@ -157,6 +161,7 @@ const ExperienceSection = () => {
                             key={exp.id}
                             exp={exp}
                             index={i}
+                            ore={ores[i]}
                             open={openId === exp.id}
                             onToggle={() =>
                                 setOpenId((cur) => (cur === exp.id ? null : exp.id))

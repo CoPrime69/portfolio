@@ -67,12 +67,16 @@ export const contact = {
 /**
  * Per-section heading copy. `depth` is the Y readout shown above the title and
  * must decrease monotonically down the page to match the descent.
+ *
+ * The stratum names here must use the same vocabulary as data/strata.js, since
+ * the live DepthMeter is on screen at the same time as these labels. "Surface"
+ * was a seventh name that existed nowhere else in the system.
  */
 export const sections = {
     education: {
         heading: "Education",
         sub: "Where the fundamentals came from.",
-        depth: "Y: 48, Surface",
+        depth: "Y: 48, Grass",
         ore: "lapis",
     },
     experience: {

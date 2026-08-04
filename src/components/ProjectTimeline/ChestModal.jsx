@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Github, ExternalLink, ChevronDown } from "lucide-react";
 import Modal from "../ModalPopUp/Modal";
 import { chestProjects } from "../../data/projects";
-import { MetricChip, TechTag, oreColor } from "../mc";
+import { MetricChip, TechTag, distinctOres, oreBlock, oreColor } from "../mc";
 
 /**
  * Additional projects as a single full-width list.
@@ -18,13 +18,13 @@ import { MetricChip, TechTag, oreColor } from "../mc";
  * expanded row only pushes down what is already beneath it.
  */
 
-const Row = ({ project, open, onToggle }) => {
+const Row = ({ project, open, onToggle, ore }) => {
     const [imageLoaded, setImageLoaded] = useState(false);
-    const accent = oreColor(project.ore);
+    const accent = oreColor(ore);
 
     return (
         <div
-            className="mc-bevel bg-black/30 transition-colors duration-200 hover:bg-black/50"
+            className="mc-bevel bg-black/30 transition-colors duration-150 hover:bg-black/50"
             style={open ? { borderColor: accent } : undefined}
         >
             <div className="flex gap-4 p-4">
@@ -36,7 +36,7 @@ const Row = ({ project, open, onToggle }) => {
                                 <div
                                     className="absolute inset-0"
                                     style={{
-                                        backgroundColor: `color-mix(in srgb, ${accent} 16%, #14141a)`,
+                                        backgroundColor: oreBlock(ore, 16),
                                     }}
                                 />
                             )}
@@ -54,11 +54,11 @@ const Row = ({ project, open, onToggle }) => {
                         <div
                             className="mc-surface absolute inset-0 flex items-center justify-center"
                             style={{
-                                backgroundColor: `color-mix(in srgb, ${accent} 20%, #14141a)`,
+                                backgroundColor: oreBlock(ore, 20),
                             }}
                         >
                             <span
-                                className="font-pixel relative z-10 text-lg"
+                                className="font-pixel pixel-md relative z-10"
                                 style={{
                                     color: accent,
                                     textShadow: "2px 2px 0 rgba(0,0,0,0.9)",
@@ -75,12 +75,12 @@ const Row = ({ project, open, onToggle }) => {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                         <div className="min-w-0">
                             <span
-                                className="font-pixel text-[9px] uppercase tracking-widest"
+                                className="mc-eyebrow"
                                 style={{ color: accent }}
                             >
                                 {project.category}
                             </span>
-                            <h3 className="mc-title mt-1 text-sm text-white sm:text-base">
+                            <h3 className="mc-title font-pixel pixel-sm mt-1 text-white">
                                 {project.title}
                             </h3>
                             <p className="mt-0.5 text-[11px] text-gray-400">{project.period}</p>
@@ -116,7 +116,7 @@ const Row = ({ project, open, onToggle }) => {
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
                         {project.technologies.map((t) => (
-                            <TechTag key={t} ore={project.ore}>
+                            <TechTag key={t} ore={ore}>
                                 {t}
                             </TechTag>
                         ))}
@@ -131,12 +131,9 @@ const Row = ({ project, open, onToggle }) => {
                                 style={{ color: accent }}
                             >
                                 <span>{open ? "Read less" : "Read more"}</span>
-                                <motion.span
-                                    animate={{ rotate: open ? 180 : 0 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <ChevronDown className="h-3 w-3" />
-                                </motion.span>
+                                <ChevronDown
+                                    className={`h-3 w-3 transition-transform duration-150 ${open ? "rotate-180" : ""}`}
+                                />
                             </button>
 
                             {/* Lives INSIDE the content column, not after the
@@ -175,7 +172,7 @@ const Row = ({ project, open, onToggle }) => {
                                                         <MetricChip
                                                             key={m.label}
                                                             {...m}
-                                                            ore={project.ore}
+                                                            ore={ore}
                                                         />
                                                     ))}
                                                 </div>
@@ -194,6 +191,10 @@ const Row = ({ project, open, onToggle }) => {
 
 const ChestModal = ({ isOpen, onClose }) => {
     const [openId, setOpenId] = useState(null);
+    // Distinct colours down the list. There are more chest projects than there
+    // are ores, so past seven the cycle wraps - distinctOres() keeps a repeat
+    // from ever landing next to its twin.
+    const ores = distinctOres(chestProjects);
 
     return (
         <Modal
@@ -202,15 +203,13 @@ const ChestModal = ({ isOpen, onClose }) => {
             title="All Projects"
             maxWidth="max-w-3xl"
             maxHeight="max-h-[85vh]"
-            className="!rounded-none mc-panel"
-            headerClassName="border-gray-700"
-            contentClassName="bg-transparent"
         >
             <div className="space-y-3">
-                {chestProjects.map((project) => (
+                {chestProjects.map((project, i) => (
                     <Row
                         key={project.id}
                         project={project}
+                        ore={ores[i]}
                         open={openId === project.id}
                         onToggle={() =>
                             setOpenId((cur) => (cur === project.id ? null : project.id))
