@@ -163,16 +163,81 @@ export const BlockPanel = ({ children, className = "", ore, glow = false, ...res
 /* ----------------------------------------------------------------- chips */
 
 export const MetricChip = ({ value, label, ore = "diamond" }) => (
-    <div className="mc-bevel-inset flex flex-col items-center bg-black/40 px-3 py-2">
+    // min-w-0 is load-bearing: without it the chip refuses to shrink below its
+    // label's natural width and pushes the row wider than the screen.
+    <div className="mc-bevel-inset flex min-w-0 flex-col items-center bg-black/40 px-2 py-2 sm:px-3">
         <span
             className="font-pixel pixel-sm leading-none"
             style={{ color: oreColor(ore) }}
         >
             {value}
         </span>
-        <span className="mc-eyebrow mt-1.5 text-gray-400">{label}</span>
+        {/* truncate keeps a long label on ONE line and ellipsises the overflow,
+            so a chip can never grow a second row and lengthen the card. */}
+        <span
+            className="mc-metric-label mt-1.5 w-full truncate text-center text-gray-400"
+            title={label}
+        >
+            {label}
+        </span>
     </div>
 );
+
+/**
+ * How many metrics a phone shows: an EVEN number, at most four.
+ *
+ * Even matters because the mobile layout is two columns - an odd count leaves a
+ * half-empty last row, which reads as something failing to load rather than as
+ * a deliberate stop. Four is the ceiling because two rows of chips is already
+ * as much vertical space as a card can give up before they bury the content.
+ *
+ *   1 -> 1 (nothing to pair it with)   4 -> 4
+ *   2 -> 2                             5 -> 4
+ *   3 -> 2                             6 -> 4
+ */
+const mobileMetricCount = (total) =>
+    total < 2 ? total : Math.min(4, total - (total % 2));
+
+/**
+ * A row of metrics for one item.
+ *
+ * TWO PER LINE ON A PHONE. The chips used to be a plain `flex-wrap`, which on a
+ * narrow screen put each one on its own row - four metrics meant four rows, and
+ * every experience and project card grew a tall column of chips that buried the
+ * content under it.
+ *
+ * Below sm this is a two-column grid, so two metrics fill one line and four
+ * fill two. The grid is what guarantees it: equal columns, each chip free to
+ * shrink (min-w-0) and ellipsise rather than push the row wider than the phone.
+ *
+ * From sm up there is room, so it goes back to the wrapping flex row with every
+ * metric visible. The extras are hidden with `sm:contents` rather than a class
+ * on the chip itself, because `hidden` and the chip's own `flex` are both
+ * display utilities and which one wins would depend on Tailwind's output order.
+ */
+export const MetricRow = ({ metrics = [], ore = "diamond", className = "" }) => {
+    if (metrics.length === 0) return null;
+
+    const onPhone = mobileMetricCount(metrics.length);
+    const shown = metrics.slice(0, onPhone);
+    const rest = metrics.slice(onPhone);
+
+    return (
+        <div className={`grid grid-cols-2 gap-2 sm:flex sm:flex-wrap ${className}`}>
+            {shown.map((m) => (
+                <MetricChip key={m.label} {...m} ore={ore} />
+            ))}
+
+            {rest.length > 0 && (
+                <div className="hidden sm:contents">
+                    {rest.map((m) => (
+                        <MetricChip key={m.label} {...m} ore={ore} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 export const TechTag = ({ children, ore = "diamond" }) => (
     <span

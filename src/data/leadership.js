@@ -15,7 +15,7 @@ const leadership = [
         rarity: "goal", // goal | challenge - drives toast styling
         ore: "gold",
         description: "Mentored 250+ first-year students through their introductory computing course.",
-        metrics: [{ value: "250+", label: "students mentored" }],
+        metrics: [{ value: "250+", label: "mentored" }],
     },
     {
         id: "prometeo-head",
@@ -28,8 +28,8 @@ const leadership = [
         description:
             "Spearheaded 4 large-scale technical events and 2 national-level hackathons for 1000+ participants, leading a 25+ member cross-functional core team across logistics, sponsorship and tech operations.",
         metrics: [
-            { value: "4", label: "technical events" },
-            { value: "2", label: "national hackathons" },
+            { value: "4", label: "events" },
+            { value: "2", label: "hackathons" },
             { value: "1000+", label: "participants" },
             { value: "25+", label: "core team" },
         ],
@@ -45,8 +45,8 @@ const leadership = [
         description:
             "Mentored 13 freshmen directly and coordinated orientation for 500+ new students.",
         metrics: [
-            { value: "13", label: "freshmen mentored" },
-            { value: "500+", label: "students oriented" },
+            { value: "13", label: "mentees" },
+            { value: "500+", label: "oriented" },
         ],
     },
 ];

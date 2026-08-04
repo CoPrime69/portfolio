@@ -7,7 +7,7 @@ import { sections } from "../../data/site";
 import {
     SectionHeading,
     BlockPanel,
-    MetricChip,
+    MetricRow,
     TechTag,
     OreNode,
     OreSeam,
@@ -81,13 +81,7 @@ const ExperienceCard = ({ exp, index, open, onToggle, ore }) => {
                 <p className="text-sm leading-relaxed text-gray-200 sm:text-base">{exp.hook}</p>
 
                 {/* Metrics worth seeing without expanding */}
-                {exp.metrics.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                        {exp.metrics.map((m) => (
-                            <MetricChip key={m.label} {...m} ore={ore} />
-                        ))}
-                    </div>
-                )}
+                <MetricRow metrics={exp.metrics} ore={ore} className="mt-4" />
 
                 <div className="mt-4 flex flex-wrap gap-1.5">
                     {exp.technologies.map((t) => (

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Github, ExternalLink, ChevronDown } from "lucide-react";
 import Modal from "../ModalPopUp/Modal";
 import { chestProjects } from "../../data/projects";
-import { MetricChip, TechTag, distinctOres, oreBlock, oreColor } from "../mc";
+import { MetricRow, TechTag, distinctOres, oreBlock, oreColor } from "../mc";
 
 /**
  * Additional projects as a single full-width list.
@@ -166,17 +166,11 @@ const Row = ({ project, open, onToggle, ore }) => {
                                                 ))}
                                             </ul>
 
-                                            {project.metrics?.length > 0 && (
-                                                <div className="mt-3 flex flex-wrap gap-1.5">
-                                                    {project.metrics.map((m) => (
-                                                        <MetricChip
-                                                            key={m.label}
-                                                            {...m}
-                                                            ore={ore}
-                                                        />
-                                                    ))}
-                                                </div>
-                                            )}
+                                            <MetricRow
+                                                metrics={project.metrics}
+                                                ore={ore}
+                                                className="mt-3"
+                                            />
                                         </div>
                                     </motion.div>
                                 )}
