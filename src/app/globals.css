@@ -187,6 +187,32 @@ canvas {
   text-transform: uppercase;
 }
 
+/**
+ * The eyebrow, retuned for metric chips.
+ *
+ * .mc-eyebrow's 0.18em tracking is what broke metrics on a phone: at 11px
+ * uppercase it makes a label like "STUDENTS MENTORED" about 153px wide, so two
+ * chips could not sit on one line in a 360px viewport and wrapped instead -
+ * stretching every card to several rows of chips. Tighter tracking gets a pair
+ * back onto one line; the full 0.18em returns from sm up where there is room.
+ *
+ * A plain class, not an @utility, because it needs no variants - it carries its
+ * own breakpoint.
+ */
+.mc-metric-label {
+  font-size: var(--pixel-xs);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 640px) {
+  .mc-metric-label {
+    letter-spacing: 0.18em;
+  }
+}
+
 /* ==========================================================================
    SECTION RHYTHM
    --------------------------------------------------------------------------

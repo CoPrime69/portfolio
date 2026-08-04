@@ -38,7 +38,7 @@ const projects = [
         ],
         metrics: [
             { value: "7+", label: "AWS systems" },
-            { value: "4+", label: "storage models" },
+            { value: "4+", label: "backends" },
             { value: "2-level", label: "failover" },
         ],
         technologies: ["Go", "Next.js", "AWS", "EKS", "Kinesis", "Redis"],
@@ -60,7 +60,7 @@ const projects = [
             "Implemented a 4-tier service architecture combining Cloudflare Tunnel, Nginx reverse proxy and LVM+Btrfs-backed storage, simplifying remote access while maintaining workload separation and data persistence.",
         ],
         metrics: [
-            { value: "5+", label: "Dockerized services" },
+            { value: "5+", label: "services" },
             { value: "4-tier", label: "architecture" },
         ],
         technologies: ["Linux", "Docker", "Nginx", "Cloudflare", "LVM", "Btrfs"],
@@ -84,7 +84,7 @@ const projects = [
         metrics: [
             { value: "85.30%", label: "accuracy" },
             { value: "-52%", label: "parameters" },
-            { value: "2×", label: "faster convergence" },
+            { value: "2×", label: "faster" },
         ],
         technologies: ["PyTorch", "CLIP", "Computer Vision", "Knowledge Distillation"],
         image: null,
@@ -130,7 +130,7 @@ const projects = [
         ],
         metrics: [
             { value: "65%", label: "accuracy" },
-            { value: "-30%", label: "evaluation time" },
+            { value: "-30%", label: "eval time" },
         ],
         technologies: [
             "Next.js", "TypeScript", "Pinecone", "Google Gemini API",
@@ -156,7 +156,7 @@ const projects = [
             "Operationalized end-to-end deployment using Infrastructure-as-Code, startup scripts and telemetry-driven scaling policies, achieving cloud resource provisioning within 60-90 seconds and automated deprovisioning below 30% CPU usage.",
         ],
         metrics: [
-            { value: "75%", label: "scale-up trigger" },
+            { value: "75%", label: "scale trigger" },
             { value: "60-90s", label: "provisioning" },
         ],
         technologies: ["Python", "Terraform", "GCP", "VirtualBox", "IaC"],
@@ -261,7 +261,7 @@ const projects = [
         ],
         metrics: [
             { value: "150+", label: "active users" },
-            { value: "-35%", label: "admin workload" },
+            { value: "-35%", label: "admin work" },
         ],
         technologies: ["React.js", "Express.js", "MongoDB", "JWT", "Recharts", "Render", "Vercel"],
         image: minesweeperImage,

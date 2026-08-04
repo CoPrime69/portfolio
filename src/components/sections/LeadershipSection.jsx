@@ -4,7 +4,7 @@ import leadership from "../../data/leadership";
 import { sections } from "../../data/site";
 import {
     SectionHeading,
-    MetricChip,
+    MetricRow,
     Reveal,
     distinctOres,
     oreBlock,
@@ -72,13 +72,7 @@ const Toast = ({ item, index, ore }) => {
                             {item.description}
                         </p>
 
-                        {item.metrics.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                {item.metrics.map((m) => (
-                                    <MetricChip key={m.label} {...m} ore={ore} />
-                                ))}
-                            </div>
-                        )}
+                        <MetricRow metrics={item.metrics} ore={ore} className="mt-4" />
                     </div>
                 </div>
             </Reveal>

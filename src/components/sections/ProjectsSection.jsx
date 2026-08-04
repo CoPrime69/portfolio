@@ -7,7 +7,7 @@ import { sections } from "../../data/site";
 import {
     SectionHeading,
     BlockPanel,
-    MetricChip,
+    MetricRow,
     TechTag,
     OreNode,
     OreSeam,
@@ -98,13 +98,7 @@ const OreVein = ({ project, index, open, onToggle, ore }) => {
 
                         <p className="text-sm leading-relaxed text-gray-200">{project.hook}</p>
 
-                        {project.metrics.length > 0 && (
-                            <div className="mt-4 flex flex-wrap gap-2">
-                                {project.metrics.map((m) => (
-                                    <MetricChip key={m.label} {...m} ore={ore} />
-                                ))}
-                            </div>
-                        )}
+                        <MetricRow metrics={project.metrics} ore={ore} className="mt-4" />
 
                         <div className="mt-4 flex flex-wrap gap-1.5">
                             {project.technologies.map((t) => (
