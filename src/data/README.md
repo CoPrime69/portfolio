@@ -123,7 +123,16 @@ stray empty string cannot produce a broken link or an empty box.
 `ore` values must match an `--ore-*` custom property in `src/app/globals.css`.
 A typo renders the wrong colour silently, so stick to this list:
 
-`diamond` · `emerald` · `lapis` · `gold` · `redstone` · `copper` · `amethyst`
+`diamond` · `emerald` · `lapis` · `gold` · `redstone` · `copper` · `iron`
+
+`amethyst` used to be listed here and no longer exists. Purple was deliberately
+pulled from the palette, but the token — and this line — outlived it, so the
+docs were advertising the one colour the design had rejected. `iron` is the
+neutral, and it was live all along via `techstack.js`'s Tools category.
+
+Every value above is contrast-checked against every stratum, on the raw
+backdrop and on `.mc-panel`; the floor is 5.17:1 (redstone on Stone). If you
+add one, measure it before you ship it.
 
 ---
 

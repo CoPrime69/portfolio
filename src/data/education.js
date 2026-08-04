@@ -1,5 +1,10 @@
 /**
  * Education, newest first. Schooling comes from main.tex / main2.tex.
+ *
+ * ORE is per-entry and deliberately varied. A pass at flattening every row to
+ * the section's lapis was tried and reverted: the multi-coloured rows are the
+ * look this site wants, and the variety is part of why the sections feel like
+ * a collection of finds rather than a table.
  */
 
 import { text } from "./_normalize";

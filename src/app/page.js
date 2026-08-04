@@ -1,6 +1,6 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   HeroSection,
   StatsHUD,
@@ -16,7 +16,7 @@ import MobileAvatar from "../components/MobileAvatar/MobileAvatar";
 import DepthMeter from "../components/Strata/DepthMeter";
 import TargetCursor from "../components/TargetCursor/TargetCursor";
 import { SKIN_URL } from "../components/MinecraftAvatar/MinecraftAvatar";
-import { profile } from "../data/site";
+import { profile, contact } from "../data/site";
 
 // Time & Location Component
 const TimeLocationWidget = () => {
@@ -40,8 +40,8 @@ const TimeLocationWidget = () => {
 
   return (
     <div className="mc-panel px-3 py-2 text-white sm:px-4 sm:py-3">
-      <div className="text-[10px] uppercase tracking-wider text-gray-400">{profile.location}</div>
-      <div className="font-pixel mt-1 text-sm sm:text-base">{time}</div>
+      <div className="mc-eyebrow text-gray-400">{profile.location}</div>
+      <div className="font-pixel pixel-sm mt-1">{time}</div>
     </div>
   );
 };
@@ -49,12 +49,13 @@ const TimeLocationWidget = () => {
 export default function Home() {
   const [currentSection, setCurrentSection] = useState("home");
   const [heroDone, setHeroDone] = useState(false);
-  const [allowScroll, setAllowScroll] = useState(false);
   const [mountSections, setMountSections] = useState(false);
   // Avatar, hotbar, depth meter and clock all reveal on this one flag.
   const [showChrome, setShowChrome] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [avatarPreloaded, setAvatarPreloaded] = useState(false);
+
+  const prefersReducedMotion = useReducedMotion();
 
   // Refs for sections
   const homeRef = useRef(null);
@@ -64,6 +65,16 @@ export default function Home() {
   const techstackRef = useRef(null);
   const leadershipRef = useRef(null);
   const contactRef = useRef(null);
+
+  const refMap = {
+    home: homeRef,
+    education: educationRef,
+    experience: experienceRef,
+    projects: projectsRef,
+    techstack: techstackRef,
+    leadership: leadershipRef,
+    contact: contactRef,
+  };
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -97,35 +108,136 @@ export default function Home() {
     preloadAvatar();
   }, []);
 
-  const scrollToSection = (sectionRef, sectionName) => {
-    sectionRef.current?.scrollIntoView({ behavior: "smooth" });
-    setCurrentSection(sectionName);
-  };
+  /**
+   * THE ACTIVE SECTION IS ALWAYS READ FROM GEOMETRY. NEVER SET OPTIMISTICALLY.
+   *
+   * Clicking a control starts a scroll and nothing else. The hotbar highlight
+   * then travels with the viewport - home, education, experience, projects -
+   * the same way it does when you scroll by hand, because it is the same
+   * mechanism. The journey is the feedback.
+   *
+   * This was briefly done the other way: the destination was set the instant
+   * you clicked, so the hotbar snapped to Projects and then appeared to walk
+   * BACKWARDS through the sections the scroll passed. The target cursor is
+   * driven by the same value, so it flicked on, off, then on again. Setting the
+   * answer before it is true is what caused both.
+   *
+   * A corollary worth keeping: the cursor now turns on when Projects genuinely
+   * holds the middle of the viewport, not when you press a button that intends
+   * to go there.
+   */
+  const activeRef = useRef("home");
 
-  // Intersection observer for current section tracking
+  const applySection = useCallback((id) => {
+    if (!id || id === activeRef.current) return;
+    activeRef.current = id;
+    setCurrentSection(id);
+  }, []);
+
+  /**
+   * The browser does the scrolling, via `scroll-smooth` on <html> in layout.js.
+   *
+   * A hand-rolled rAF version was tried here - duration scaled to distance, so
+   * a long jump took longer and you saw more of what you passed. It felt worse,
+   * not better: `scroll-smooth` turns every programmatic window.scrollTo into
+   * its OWN eased animation, so 60 of them a second sat on top of each other,
+   * each chasing a target that had already moved. The result was a visible
+   * delay between the click and any movement. Native it is.
+   */
+  const scrollToSection = useCallback(
+    (sectionRef) => {
+      sectionRef.current?.scrollIntoView({
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    },
+    [prefersReducedMotion]
+  );
+
+  /**
+   * WHICH SECTION AM I IN?
+   *
+   * This was an IntersectionObserver over a `-40% 0px -40% 0px` band that only
+   * ever acted on `entry.isIntersecting === true`, so the answer depended on
+   * which entries happened to cross a threshold together and in what order.
+   * Scrolling UP out of a tall section could leave `currentSection` stuck on
+   * the section below it - which is why the Projects target cursor did not
+   * come back when you scrolled up from Tech Stack.
+   *
+   * Geometry is not ambiguous: the active section is the one containing the
+   * middle of the viewport. That is direction-independent, survives jumps from
+   * anywhere to anywhere, and gives the same answer no matter how tall the
+   * section is or how you arrived in it.
+   */
+  const readActiveSection = useCallback(() => {
+    // Listed explicitly rather than read off `refMap`, which is rebuilt every
+    // render - the ref objects themselves are stable, so this closure is safe
+    // to create once.
+    const entries = [
+      ["home", homeRef],
+      ["education", educationRef],
+      ["experience", experienceRef],
+      ["projects", projectsRef],
+      ["techstack", techstackRef],
+      ["leadership", leadershipRef],
+      ["contact", contactRef],
+    ];
+
+    const centre = window.innerHeight / 2;
+    let containing = null;
+    let nearest = null;
+    let nearestDistance = Infinity;
+
+    for (const [id, ref] of entries) {
+      const el = ref.current;
+      if (!el) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.height === 0) continue;
+
+      if (rect.top <= centre && rect.bottom >= centre) {
+        containing = id;
+        break;
+      }
+
+      const distance =
+        rect.top > centre ? rect.top - centre : centre - rect.bottom;
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = id;
+      }
+    }
+
+    // `nearest` covers the gaps: StatsHUD sits between Leadership and Contact
+    // and owns no ref, so the centre can legitimately be inside no section.
+    return containing ?? nearest;
+  }, []);
+
   useEffect(() => {
-    if (!allowScroll) return;
+    if (!mountSections) return;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setCurrentSection(entry.target.getAttribute("data-section"));
-          }
-        });
-      },
-      { root: null, rootMargin: "-40% 0px -40% 0px", threshold: 0 }
-    );
+    let frame = null;
 
-    [
-      homeRef, educationRef, experienceRef, projectsRef,
-      techstackRef, leadershipRef, contactRef,
-    ].forEach((ref) => {
-      if (ref.current) observer.observe(ref.current);
-    });
+    const update = () => {
+      frame = null;
+      applySection(readActiveSection());
+    };
 
-    return () => observer.disconnect();
-  }, [allowScroll]);
+    // rAF is the right throttle here: it is exactly one read per painted frame,
+    // so the highlight tracks a smooth scroll without doing layout work the
+    // screen would never show.
+    const onScroll = () => {
+      if (frame === null) frame = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      if (frame !== null) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [mountSections, readActiveSection, applySection]);
 
   /**
    * PERF: mount the below-the-fold sections PART WAY THROUGH the hero rather
@@ -137,11 +249,22 @@ export default function Home() {
    * what made the reveal stutter. Mounting them early costs nothing visually
    * (they are off-screen and the page cannot be scrolled yet) and spreads the
    * work across a quiet part of the intro.
+   *
+   * THIS NUMBER IS COUPLED TO THE HERO'S SCHEDULE. It has to land inside the
+   * intro but before the gate opens: too early and it collides with the
+   * headline animation, too late and the page becomes scrollable before the
+   * sections below it exist. The hero settles around 4.4s (see STAGE in
+   * HeroSection.jsx), so 2200ms sits in the quiet middle. If you change the
+   * hero's timing, change this with it.
    */
   useEffect(() => {
+    if (prefersReducedMotion) {
+      setMountSections(true);
+      return;
+    }
     const t = setTimeout(() => setMountSections(true), 2200);
     return () => clearTimeout(t);
-  }, []);
+  }, [prefersReducedMotion]);
 
   // The page must not scroll until the hero has finished, now that the
   // sections below it exist before that point.
@@ -156,21 +279,26 @@ export default function Home() {
   // Reset scroll to top on reload + after hero animation
   useEffect(() => {
     if (heroDone) {
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setAllowScroll(true);
+      window.scrollTo({ top: 0, behavior: prefersReducedMotion ? "auto" : "smooth" });
     }
-  }, [heroDone]);
+  }, [heroDone, prefersReducedMotion]);
 
-  // Target cursor belongs to the Projects section only.
+  // Target cursor belongs to the Projects section only. Now that
+  // `currentSection` is derived from geometry it is correct whichever
+  // direction you arrive from.
   const targetCursorActive = currentSection === "projects" && !isMobile && heroDone;
 
   return (
     <div className="relative">
+      <a href="#content" className="mc-btn mc-skip-link">
+        Skip to content
+      </a>
+
       {/* Hero - the night sky, layout unchanged */}
       <div ref={homeRef} data-section="home" className="relative z-10">
         <HeroSection
-          onScrollToProjects={() => scrollToSection(projectsRef, "projects")}
-          onScrollToContact={() => scrollToSection(contactRef, "contact")}
+          onScrollToProjects={() => scrollToSection(projectsRef)}
+          onScrollToContact={() => scrollToSection(contactRef)}
           onHeroComplete={() => setHeroDone(true)}
           onChromeReveal={() => setShowChrome(true)}
           avatarPreloaded={avatarPreloaded}
@@ -208,37 +336,43 @@ export default function Home() {
       </AnimatePresence>
 
       {/* Descend. Mounted during the hero, not at the end of it (see above). */}
-      {mountSections && (
-        <>
-          {/* Education leads the descent */}
-          <div ref={educationRef} data-section="education" className="section-slice">
-            <EducationSection />
-          </div>
+      <main id="content">
+        {mountSections && (
+          <>
+            {/* Education leads the descent */}
+            <div ref={educationRef} data-section="education" className="section-slice">
+              <EducationSection />
+            </div>
 
-          <div ref={experienceRef} data-section="experience" className="section-slice">
-            <ExperienceSection />
-          </div>
+            <div ref={experienceRef} data-section="experience" className="section-slice">
+              <ExperienceSection />
+            </div>
 
-          <div ref={projectsRef} data-section="projects" className="section-slice">
-            <ProjectsSection />
-          </div>
+            <div ref={projectsRef} data-section="projects" className="section-slice">
+              <ProjectsSection />
+            </div>
 
-          <div ref={techstackRef} data-section="techstack" className="section-slice">
-            <TechStackSection />
-          </div>
+            <div ref={techstackRef} data-section="techstack" className="section-slice">
+              <TechStackSection />
+            </div>
 
-          <div ref={leadershipRef} data-section="leadership" className="section-slice">
-            <LeadershipSection />
-          </div>
+            <div ref={leadershipRef} data-section="leadership" className="section-slice">
+              <LeadershipSection />
+            </div>
 
-          {/* Summary numbers land at the end, as a wrap-up */}
-          <StatsHUD />
+            {/* Summary numbers land at the end, as a wrap-up */}
+            <StatsHUD />
 
-          <div ref={contactRef} data-section="contact" className="section-slice">
-            <ContactSection />
-          </div>
-        </>
-      )}
+            <div ref={contactRef} data-section="contact" className="section-slice">
+              <ContactSection />
+            </div>
+
+            <footer className="mc-container pb-[var(--dock-clearance)] text-center">
+              <p className="text-xs text-gray-400">{contact.footer}</p>
+            </footer>
+          </>
+        )}
+      </main>
 
       {/* Mounted once so it can cross-fade rather than popping in, but only
           ever visible while the Projects section is the active one. */}
@@ -257,15 +391,7 @@ export default function Home() {
         <NavigationDock
           scrollToSection={scrollToSection}
           currentSection={currentSection}
-          refs={{
-            home: homeRef,
-            education: educationRef,
-            experience: experienceRef,
-            projects: projectsRef,
-            techstack: techstackRef,
-            leadership: leadershipRef,
-            contact: contactRef,
-          }}
+          refs={refMap}
         />
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useMemo } from "react";
+import { useReducedMotion } from "framer-motion";
 import { gsap } from "gsap";
 
 /**
@@ -32,6 +33,12 @@ const TargetCursor = ({
   const cornersRef = useRef(null);
   const spinTl = useRef(null);
   const dotRef = useRef(null);
+
+  // GSAP writes inline transforms, so the reduce block in globals.css cannot
+  // touch any of this. Under reduced motion the reticle still works - it just
+  // stops spinning and tracks the pointer exactly rather than trailing it.
+  const prefersReducedMotion = useReducedMotion();
+
   const constants = useMemo(
     () => ({
       borderWidth: 3,
@@ -41,17 +48,24 @@ const TargetCursor = ({
     [],
   );
 
-  const moveCursor = useCallback((x, y) => {
-    if (!cursorRef.current) return;
-    gsap.to(cursorRef.current, {
-      x,
-      y,
-      // Slightly longer than the original 0.1 so the follow reads as a glide
-      // rather than a snap, without feeling laggy.
-      duration: 0.22,
-      ease: "power3.out",
-    });
-  }, []);
+  const moveCursor = useCallback(
+    (x, y) => {
+      if (!cursorRef.current) return;
+      if (prefersReducedMotion) {
+        gsap.set(cursorRef.current, { x, y });
+        return;
+      }
+      gsap.to(cursorRef.current, {
+        x,
+        y,
+        // Slightly longer than the original 0.1 so the follow reads as a glide
+        // rather than a snap, without feeling laggy.
+        duration: 0.22,
+        ease: "power3.out",
+      });
+    },
+    [prefersReducedMotion],
+  );
 
   // Fade in/out on activation instead of mounting and unmounting outright -
   // a hard mount made the cursor pop into existence mid-scroll.
@@ -111,6 +125,9 @@ const TargetCursor = ({
       if (spinTl.current) {
         spinTl.current.kill();
       }
+      // A reticle that spins forever is exactly the kind of continuous motion
+      // prefers-reduced-motion exists to stop.
+      if (prefersReducedMotion) return;
       spinTl.current = gsap
         .timeline({ repeat: -1 })
         .to(cursor, {
@@ -367,7 +384,7 @@ const TargetCursor = ({
       if (resumeTimeout) clearTimeout(resumeTimeout);
       spinTl.current?.kill();
     };
-  }, [targetSelector, spinDuration, moveCursor, constants]);
+  }, [targetSelector, spinDuration, moveCursor, constants, prefersReducedMotion]);
 
   useEffect(() => {
     if (!cursorRef.current || !spinTl.current) return;
@@ -390,9 +407,11 @@ const TargetCursor = ({
       className="fixed top-0 left-0 w-0 h-0 pointer-events-none z-[9999] mix-blend-difference transform -translate-x-1/2 -translate-y-1/2"
       style={{ willChange: "transform, opacity", opacity: 0 }}
     >
+      {/* Square, not `rounded-full`. This was the only remaining round corner
+          in the system outside the modal chrome. */}
       <div
         ref={dotRef}
-        className="absolute left-1/2 top-1/2 w-1 h-1 bg-white rounded-full transform -translate-x-1/2 -translate-y-1/2"
+        className="absolute left-1/2 top-1/2 w-1 h-1 bg-white transform -translate-x-1/2 -translate-y-1/2"
         style={{ willChange: "transform" }}
       />
       <div

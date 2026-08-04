@@ -1,6 +1,5 @@
 "use client";
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
 import { LayoutGrid } from "lucide-react";
 import technologies, {
     primaryTechnologies,
@@ -9,7 +8,7 @@ import technologies, {
 } from "../../data/techstack";
 import Modal from "../ModalPopUp/Modal";
 import { sections } from "../../data/site";
-import { SectionHeading, oreColor } from "../mc";
+import { SectionHeading, Reveal, oreColor } from "../mc";
 
 /**
  * Primary stack in the section, full stack behind a button.
@@ -17,8 +16,11 @@ import { SectionHeading, oreColor } from "../mc";
  * Every tile puts its label immediately beneath the glyph inside the same
  * bordered cell, so a name always reads as belonging to its icon.
  *
- * Icons come from `react-icons/si` and are monochrome, so they take the
- * category tint and read as one set instead of a jumble of brand colours.
+ * Icons come from `react-icons/si` and are monochrome, so they take a tint and
+ * read as one set instead of a jumble of brand colours.
+ *
+ * Tiles take their category's ore in both the section and the modal, so a
+ * technology is the same colour wherever you meet it.
  */
 
 const TechTile = ({ tech, ore, compact = false }) => {
@@ -31,14 +33,13 @@ const TechTile = ({ tech, ore, compact = false }) => {
             title={`${tech.label} (${tech.category})`}
         >
             <span
-                className={`flex items-center justify-center transition-transform duration-200 group-hover:scale-110 ${compact ? "h-8 w-8" : "h-9 w-9"
-                    }`}
+                className={`flex items-center justify-center ${compact ? "h-8 w-8" : "h-9 w-9"}`}
                 style={{ color: accent }}
             >
                 {Icon ? (
                     <Icon className={compact ? "h-6 w-6" : "h-7 w-7"} aria-hidden="true" />
                 ) : (
-                    <span className="font-pixel text-base">{tech.short}</span>
+                    <span className="font-pixel pixel-sm">{tech.short}</span>
                 )}
             </span>
 
@@ -70,9 +71,6 @@ const FullStackModal = ({ isOpen, onClose }) => {
             title="Full Stack"
             maxWidth="max-w-4xl"
             maxHeight="max-h-[85vh]"
-            className="!rounded-none mc-panel"
-            headerClassName="border-gray-700"
-            contentClassName="bg-transparent"
         >
             <div className="space-y-6">
                 <div className="flex flex-wrap gap-2">
@@ -84,7 +82,7 @@ const FullStackModal = ({ isOpen, onClose }) => {
                                 key={c}
                                 onClick={() => setCategory(c)}
                                 aria-pressed={active}
-                                className="mc-btn px-3 py-2 text-xs text-white hover:cursor-pointer"
+                                className="mc-btn pixel-sm px-3 py-2 text-white hover:cursor-pointer"
                                 style={
                                     active
                                         ? {
@@ -123,26 +121,21 @@ const FullStackModal = ({ isOpen, onClose }) => {
 
 const TechStackSection = () => {
     const [open, setOpen] = useState(false);
+    const ore = sections.techstack.ore;
 
     return (
         <>
-            <section className="relative py-20 sm:py-28">
-                <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <section className="mc-section">
+                <div className="mc-container">
                     <SectionHeading
-                        ore={sections.techstack.ore}
-                    depth={sections.techstack.depth}
-                    sub={sections.techstack.sub}
+                        ore={ore}
+                        depth={sections.techstack.depth}
+                        sub={sections.techstack.sub}
                     >
                         Tech Stack
                     </SectionHeading>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-60px" }}
-                        transition={{ duration: 0.45 }}
-                        className="grid grid-cols-3 gap-2.5 sm:grid-cols-5 lg:grid-cols-5"
-                    >
+                    <Reveal className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
                         {primaryTechnologies.map((tech) => (
                             <TechTile
                                 key={tech.label}
@@ -150,14 +143,15 @@ const TechStackSection = () => {
                                 ore={CATEGORY_ORE[tech.category] ?? "diamond"}
                             />
                         ))}
-                    </motion.div>
+                    </Reveal>
 
-                    {/* Extra bottom room so this CTA can't come to rest
-                        underneath the fixed hotbar. */}
-                    <div className="mt-10 flex justify-center pb-16 sm:pb-20">
+                    {/* The one-off pb-16 that used to live here is gone: hotbar
+                        clearance is now .mc-section-dock, applied where the page
+                        actually ends rather than section by section. */}
+                    <div className="mt-10 flex justify-center">
                         <button
                             onClick={() => setOpen(true)}
-                            className="mc-btn cursor-target flex items-center gap-3 px-6 py-4 text-sm text-white hover:cursor-pointer"
+                            className="mc-btn cursor-target pixel-sm flex items-center gap-3 px-6 py-4 text-white hover:cursor-pointer"
                         >
                             <LayoutGrid className="h-4 w-4" />
                             <span>

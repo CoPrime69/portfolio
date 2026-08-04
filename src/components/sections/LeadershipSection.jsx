@@ -1,9 +1,15 @@
 "use client";
-import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import leadership from "../../data/leadership";
 import { sections } from "../../data/site";
-import { SectionHeading, MetricChip, oreColor } from "../mc";
+import {
+    SectionHeading,
+    MetricChip,
+    Reveal,
+    distinctOres,
+    oreBlock,
+    oreColor,
+} from "../mc";
 
 /**
  * Advancement toasts.
@@ -12,80 +18,97 @@ import { SectionHeading, MetricChip, oreColor } from "../mc";
  * does, then stays put - the animation is the point, so it fires once on
  * scroll-into-view rather than looping.
  *
- * `rarity: "challenge"` gets the purple-tinted treatment Minecraft reserves
- * for challenge advancements; "goal" gets the standard gold.
+ * THE OVERFLOW BUG THIS FILE USED TO HAVE: the slide was `initial={{ x: 60 }}`
+ * on the toast itself, which is a full-width element. Until each toast had
+ * animated in, it sat 60px to the right of its container and widened the
+ * document - measured `window.scrollX` reaching 36 at 768px, and a 349px-wide
+ * page at a 320px viewport. The travel now happens on an inner wrapper inside
+ * an `overflow-hidden` frame, so the toast still enters from the right and the
+ * page can no longer be pushed sideways.
+ *
+ * `rarity: "challenge"` changes the banner wording. It used to promise a
+ * purple-tinted treatment as well; purple (amethyst) was deliberately pulled
+ * from the palette, so the wording is the whole difference and the comment
+ * that claimed otherwise has been corrected rather than the colour restored.
  */
 
-const Toast = ({ item, index }) => {
-    const accent = oreColor(item.ore);
+const Toast = ({ item, index, ore }) => {
+    const accent = oreColor(ore);
     const isChallenge = item.rarity === "challenge";
 
     return (
-        <motion.div
-            initial={{ opacity: 0, x: 60 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-60px" }}
-            transition={{ duration: 0.5, delay: index * 0.12, ease: [0.2, 0.8, 0.2, 1] }}
-            className="mc-toast p-4 sm:p-5"
-            style={{ borderColor: accent }}
-        >
-            <div className="flex items-start gap-4">
-                {/* Advancement icon block */}
-                <div
-                    className="mc-bevel flex h-12 w-12 shrink-0 items-center justify-center"
-                    style={{ backgroundColor: `color-mix(in srgb, ${accent} 22%, #14141a)` }}
-                >
-                    <Trophy className="h-5 w-5" style={{ color: accent }} />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                    <p
-                        className="font-pixel text-[10px] uppercase tracking-widest"
-                        style={{ color: accent }}
+        <div className="overflow-hidden">
+            <Reveal
+                index={index}
+                from={{ opacity: 0, x: 60 }}
+                transition={{ duration: 0.45, delay: index * 0.1, ease: [0, 0, 1, 1] }}
+                className="mc-toast p-4 sm:p-5"
+                style={{ borderColor: accent }}
+            >
+                <div className="flex items-start gap-4">
+                    {/* Advancement icon block */}
+                    <div
+                        className="mc-bevel flex h-12 w-12 shrink-0 items-center justify-center"
+                        style={{ backgroundColor: oreBlock(ore, 22) }}
                     >
-                        {isChallenge ? "Challenge Complete!" : "Advancement Made!"}
-                    </p>
-                    <h3 className="mc-title mt-1.5 text-base text-white">{item.achievement}</h3>
+                        <Trophy className="h-5 w-5" style={{ color: accent }} />
+                    </div>
 
-                    <p className="mt-2 text-sm text-gray-200">
-                        <span className="font-medium text-white">{item.title}</span>
-                        <span className="text-gray-400"> · {item.org}</span>
-                    </p>
-                    <p className="mt-1 text-xs text-gray-400">{item.period}</p>
+                    <div className="min-w-0 flex-1">
+                        <p className="mc-eyebrow" style={{ color: accent }}>
+                            {isChallenge ? "Challenge Complete!" : "Advancement Made!"}
+                        </p>
+                        <h3 className="mc-title font-pixel pixel-md mt-1.5 text-white">
+                            {item.achievement}
+                        </h3>
 
-                    <p className="mt-3 text-sm leading-relaxed text-gray-300">{item.description}</p>
+                        <p className="mt-2 text-sm text-gray-200">
+                            <span className="font-medium text-white">{item.title}</span>
+                            <span className="text-gray-400"> · {item.org}</span>
+                        </p>
+                        <p className="mt-1 text-xs text-gray-400">{item.period}</p>
 
-                    {item.metrics.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                            {item.metrics.map((m) => (
-                                <MetricChip key={m.label} {...m} ore={item.ore} />
-                            ))}
-                        </div>
-                    )}
+                        <p className="mt-3 text-sm leading-relaxed text-gray-300">
+                            {item.description}
+                        </p>
+
+                        {item.metrics.length > 0 && (
+                            <div className="mt-4 flex flex-wrap gap-2">
+                                {item.metrics.map((m) => (
+                                    <MetricChip key={m.label} {...m} ore={ore} />
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </motion.div>
+            </Reveal>
+        </div>
     );
 };
 
-const LeadershipSection = () => (
-    <section className="relative py-20 sm:py-28">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-            <SectionHeading
-                ore={sections.leadership.ore}
+const LeadershipSection = () => {
+    // One colour per advancement, guaranteed distinct - see distinctOres().
+    const ores = distinctOres(leadership);
+
+    return (
+        <section className="mc-section">
+            <div className="mc-container mc-container-narrow">
+                <SectionHeading
+                    ore={sections.leadership.ore}
                     depth={sections.leadership.depth}
                     sub={sections.leadership.sub}
-            >
-                Leadership
-            </SectionHeading>
+                >
+                    Leadership
+                </SectionHeading>
 
-            <div className="space-y-5">
-                {leadership.map((item, i) => (
-                    <Toast key={item.id} item={item} index={i} />
-                ))}
+                <div className="space-y-5">
+                    {leadership.map((item, i) => (
+                        <Toast key={item.id} item={item} index={i} ore={ores[i]} />
+                    ))}
+                </div>
             </div>
-        </div>
-    </section>
-);
+        </section>
+    );
+};
 
 export default LeadershipSection;
