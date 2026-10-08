@@ -14,14 +14,14 @@ export const profile = {
     phone: "+91-9044070178",
     github: "https://github.com/CoPrime69",
     linkedin: "https://www.linkedin.com/in/prakhar-srivastava-b539172ab/",
-    website: "https://www.coprime69.me",
+    website: "https://coprime69.vercel.app",
 };
 
 export const meta = {
     title: "Prakhar Srivastava - AI/ML & Backend Engineer",
     description:
         "B.Tech AI & Data Science at IIT Jodhpur. AI/ML and backend engineer - LLM fine-tuning, distributed data platforms and cloud infrastructure.",
-    url: "https://coprime69.me",
+    url: "https://coprime69.vercel.app",
 };
 
 export const hero = {

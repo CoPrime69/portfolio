@@ -346,7 +346,7 @@ const projects = [
         technologies: ["Next.js", "Framer Motion", "Tailwind CSS", "skinview3d", "GSAP"],
         image: portfolioImage,
         github: "https://github.com/CoPrime69/portfolio",
-        demo: "https://www.coprime69.me",
+        demo: "https://coprime69.vercel.app",
     },
 ];
 

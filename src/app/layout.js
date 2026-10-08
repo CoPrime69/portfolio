@@ -15,12 +15,12 @@ const funnelDisplay = Funnel_Display({
 export const metadata = {
   title: siteMeta.title,
   description: siteMeta.description,
-  metadataBase: new URL("https://coprime69.me"),
+  metadataBase: new URL("https://coprime69.vercel.app"),
   openGraph: {
     title: "Prakhar Srivastava - AI/ML & Backend Engineer",
     description:
       "B.Tech AI & Data Science at IIT Jodhpur. LLM fine-tuning, distributed data platforms and cloud infrastructure.",
-    url: "https://coprime69.me",
+    url: "https://coprime69.vercel.app",
     siteName: "Prakhar Srivastava",
     type: "website",
   },

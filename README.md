@@ -1,7 +1,7 @@
 # Portfolio — Minecraft Strata Descent
 
 Personal site for **Prakhar Srivastava** — AI/ML & backend engineer, B.Tech AI & DS at
-IIT Jodhpur. Live at **[coprime69.me](https://coprime69.me)**.
+IIT Jodhpur. Live at **[coprime69.vercel.app](https://coprime69.vercel.app)**.
 
 The page is not a document, it is a place. You start at the night sky and dig: the
 background colour travels with your scroll through six strata — sky, grass, dirt, stone,
